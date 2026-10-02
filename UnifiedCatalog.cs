@@ -24,7 +24,9 @@ public static class UnifiedCatalog
     {
         var aliases=group.ToList();var preferred=aliases.OrderBy(Preference).ThenByDescending(x=>x.Modified).First();
         var heroes=CatalogTaxonomy.EntryHeroes(aliases);string type=CatalogTaxonomy.EntryType(aliases);
-        var item=preferred with {Category=Category(preferred.Category),Downloads=aliases.Max(x=>x.Downloads),Likes=aliases.Max(x=>x.Likes),Hero=string.Join(',',heroes),ModType=type};
+        var item=preferred with {Category=Category(preferred.Category),Downloads=aliases.Max(x=>x.Downloads),Likes=aliases.Max(x=>x.Likes),Hero=string.Join(',',heroes),ModType=type,
+            ContentRatings=string.Join(", ",aliases.Select(x=>x.ContentRatings).Where(x=>x!="").Distinct()),
+            InitialVisibility=preferred.InitialVisibility!=""?preferred.InitialVisibility:aliases.Any(x=>x.InitialVisibility=="hide")?"hide":aliases.Any(x=>x.InitialVisibility=="warn")?"warn":""};
         return new UnifiedEntry(item,aliases){Heroes=heroes,Type=type,SearchText=CatalogTaxonomy.SearchText(aliases,type)};
     }).ToList();
     public static List<string> Categories(IEnumerable<UnifiedEntry> rows,string kind)=>rows.Where(x=>kind=="" || x.Item.Kind==kind).Select(x=>x.Item.Category).Where(x=>x!="").Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x=>x,StringComparer.CurrentCultureIgnoreCase).ToList();

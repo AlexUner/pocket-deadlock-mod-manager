@@ -110,6 +110,7 @@ internal static partial class SelfTests
         Assert(instant.Total==1 && instant.Items[0].Id==2,"catalog category filter uses the whole index");
         await UnifiedTests(run,Assert);
         await ThumbnailTests(run,Assert);
+        AccountTests(run,Assert,Fails);
         if(live)
         {
         var provider=new GameBanana();
@@ -183,6 +184,11 @@ internal static partial class SelfTests
         var cold=new HybridCatalogs(Path.Combine(run,"cold-unified-data"),false);
         page=await cold.QueryUnified("Mod","Haze",1,"",0,CancellationToken.None);
         assert(page.Total==0,"empty combined index returns immediately while startup refresh can populate it");
+        ((HybridCatalog)all.Sources["GameBanana"]).Merge(many);
+        var feed=await all.QueryUnified("Mod","",1,"",0,CancellationToken.None,perPage:int.MaxValue);
+        assert(feed.Items.Count==feed.Total && feed.Total>24 && feed.Items.Select(UnifiedCatalog.Identity).Distinct().Count()==feed.Total,"infinite catalog snapshot includes every unique result beyond the former first page");
+        var feedSearch=await all.QueryUnified("Mod","Paged",1,"",1,CancellationToken.None,perPage:int.MaxValue);
+        assert(feedSearch.Total==50 && feedSearch.Items.Count==50 && feedSearch.Items[0].Id==100 && feedSearch.Items[^1].Id==149,"infinite search retains filtering and stable sorting through its final result");
         HeroTests(assert);
     }
     static void HeroTests(Action<bool,string> assert)

@@ -19,7 +19,7 @@ public partial class MainWindow : Window
     readonly HybridCatalogs sources;
     CancellationTokenSource? operation;
     bool busy,library;
-    int page=1,total,perPage=24;
+    int total;
     string activeSearch="",activeKind="Mod",sourceUrl="";
     ModDetails? details;
     LibraryMod? selectedLocal;
@@ -29,11 +29,12 @@ public partial class MainWindow : Window
     public MainWindow(ModStorage storage,string? preview)
     {
         this.storage=storage; game=new(storage);sources=new(storage.Root,preview==null); InitializeComponent();
-        InitializeFeatures(preview!=null);RefreshGame(); InitializeUpdateTimer(preview==null);
+        InitializeFeatures(preview!=null);RefreshGame();RefreshAccount(); InitializeUpdateTimer(preview==null);
         Loaded+=async (_,_)=>
         {
             if(preview==null) _ = sources.Warm(CancellationToken.None);
             await LoadCatalog();
+#if DIAGNOSTICS
             if(preview!=null)
             {
                 if(App.PreviewMode=="--tiles")
@@ -50,6 +51,11 @@ public partial class MainWindow : Window
                 if(App.PreviewMode=="--profiles") ShowProfiles(this,new RoutedEventArgs());
                 if(App.PreviewMode=="--downloads") ShowDownloads(this,new RoutedEventArgs());
                 string review=App.PreviewMode=="--categories"?await ReviewCatalogControls(preview):App.PreviewMode=="--tiles"?await ReviewTileControls(preview):"";
+                if(App.PreviewMode=="--account")
+                {
+                    var accountWindow=new GameBananaLoginWindow(App.Account!){Owner=this};accountWindow.Show();
+                    review=await accountWindow.ReviewGuest(preview+".login.png");
+                }
                 await Dispatcher.InvokeAsync(()=>{},System.Windows.Threading.DispatcherPriority.ContextIdle);
                 UpdateLayout();
                 var image=new RenderTargetBitmap((int)ActualWidth,(int)ActualHeight,96,96,PixelFormats.Pbgra32); image.Render(this);
@@ -58,7 +64,9 @@ public partial class MainWindow : Window
                 File.WriteAllText(preview+".txt",$"Catalog rows: {CatalogList.Items.Count}\nDetail: {DetailTitle.Text}\nStatus: {StatusLabel.Text}\n"+review);
                 Close();
             }
-            else await ScheduledUpdates();
+            else
+#endif
+                await ScheduledUpdates();
         };
         Closing+=HandleClosing;
     }
@@ -93,7 +101,7 @@ public partial class MainWindow : Window
         library=useLibrary;
         featureId="";DetailActions.Visibility=FormatHelp.Visibility=Visibility.Visible;
         favoritesView=false; FeatureScreen.Visibility=Visibility.Collapsed;FiltersPanel.Visibility=library?Visibility.Collapsed:Visibility.Visible;
-        CatalogList.Visibility=SearchPanel.Visibility=Paging.Visibility=library?Visibility.Collapsed:Visibility.Visible;
+        CatalogList.Visibility=SearchPanel.Visibility=FeedSummary.Visibility=library?Visibility.Collapsed:Visibility.Visible;
         LibraryList.Visibility=LibraryActions.Visibility=ApplyPanel.Visibility=library?Visibility.Visible:Visibility.Collapsed;
         SetNavigation(library?LibraryTab:CatalogTab);
         if(library && !busy && !checkingUpdates) StatusLabel.Text=L.T("Выбери моды и их порядок. Изменения применятся после выхода из игры.");
@@ -116,39 +124,41 @@ public partial class MainWindow : Window
     async Task LoadCatalog()=>await Run(L.T("Загружаем каталог…"),async token=>
     {
         SetTab(false);
-        var result=await sources.QueryUnified(activeKind,activeSearch,page,SelectedCategory,sortIndex,token,selectedHero);
-        DisplayCatalog(result.Items); total=result.Total; perPage=result.PerPage;
-        PageLabel.Text=L.T($"Страница {page} из {Math.Max(1,(int)Math.Ceiling(total/(double)perPage))} · Всего: {total}");
-        PreviousButton.IsEnabled=page>1; NextButton.IsEnabled=page*perPage<total;
+        var result=await sources.QueryUnified(activeKind,activeSearch,1,SelectedCategory,sortIndex,token,selectedHero,perPage:int.MaxValue,content:contentFilter);
+        DisplayCatalog(result.Items);total=result.Total;FeedSummary.Text=L.T("Найдено: ")+total;
+        Descendants<ScrollViewer>(CatalogList).FirstOrDefault()?.ScrollToTop();
         EmptyLabel.Text=L.T("Ничего не найдено. Сбрось фильтры или попробуй другое название.");
         EmptyLabel.Visibility=result.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
         ClearDetail();var searchPlan=CatalogTaxonomy.Search(activeSearch);
         StatusLabel.Text=searchPlan.Hero==""?L.T("Ищи по названию или герою. Тип мода можно выбрать в фильтре."):L.T("Поиск по герою: ")+CatalogTaxonomy.HeroLabel(searchPlan.Hero);
         if(result.Total==0 && sources.IsRefreshing) EmptyLabel.Text=L.T("Каталог загружается в фоне. Результаты появятся здесь.");
-        if(result.Items.Count>0) { CatalogList.SelectedIndex=0;lastDetail=ShowDetail(result.Items[0]); }
     });
     async Task ShowDetail(CatalogItem item)
     {
         detailRequest?.Cancel();detailRequest?.Dispose();detailRequest=new CancellationTokenSource();
-        try {await LoadDetail(item.Kind,item.Id,detailRequest.Token,item);}catch(OperationCanceledException) { }catch(Exception ex) {StatusLabel.Text=L.T(ex.Message);}
+        try {await LoadDetail(item.Kind,item.Id,detailRequest.Token,item);}catch(OperationCanceledException) { }catch(GameBananaLoginRequiredException ex)
+        {DetailTitle.Text=item.Name;DetailText.Text=ex.Message;sourceUrl=item.Url;SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);StatusLabel.Text=ex.Message;}
+        catch(Exception ex) {StatusLabel.Text=L.T(ex.Message);}
     }
-    void ClearDetail()
+    void ClearDetail(bool cancelRequest=true)
     {
+        if(cancelRequest) detailRequest?.Cancel();
         detailGeneration++;
         details=null; selectedLocal=null; sourceUrl=""; PreviewImage.Source=null;
         LibraryTools.Visibility=Visibility.Collapsed;
         HigherButton.IsEnabled=LowerButton.IsEnabled=RollbackButton.IsEnabled=false;
         FavoriteButton.Visibility=Visibility.Visible;
-        DetailTitle.Text=L.T("Выбери мод"); DetailMeta.Text=""; DetailText.Text=""; RequirementsLabel.Text="";
+        DetailTitle.Text=L.T("Выбери мод"); DetailMeta.Text=""; DetailText.Text=L.T("Нажми на карточку, чтобы посмотреть описание и варианты скачивания."); RequirementsLabel.Text="";
         DownloadButton.IsEnabled=SourceButton.IsEnabled=FavoriteButton.IsEnabled=false; FilesBox.Visibility=FileLabel.Visibility=Visibility.Collapsed;
     }
     async Task LoadDetail(string kind,long id,CancellationToken token,CatalogItem? item=null)
     {
-        ClearDetail();int generation=detailGeneration;
+        ClearDetail(false);int generation=detailGeneration;
         var fetched=item==null?await new GameBanana().Details(kind,id,token):await sources.Get(item.Provider).Details(item,token);
         if(generation!=detailGeneration) return;
         details=item==null?fetched:fetched with {Item=fetched.Item with {Hero=item.Hero,ModType=item.ModType}};
         DetailTitle.Text=details.Item.Name; DetailMeta.Text=details.Item.Caption; DetailText.Text=details.Description;
+        if(details.Item.ContentRatings!="") DetailMeta.Text+="\n"+L.T(details.Item.ContentRatings);
         RequirementsLabel.Text=details.Requirements.Length>0?L.T("Требования автора: ")+details.Requirements:"";
         sourceUrl=details.Item.Url; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
         DetailMeta.Text+=L.T($"\nЗагрузок: {details.Item.Downloads} · Оценок: {details.Item.Likes}");RefreshFavorite();
@@ -198,11 +208,9 @@ public partial class MainWindow : Window
                 await Run(L.T("Открываем ссылку…"),token=>LoadDetail(match.Groups[1].Value=="mods"?"Mod":"Sound",long.Parse(match.Groups[2].Value),token)); return;
             }
         }
-        activeSearch=input; activeKind=KindBox.SelectedIndex==1?"Sound":"Mod"; page=1; await LoadCatalog();
+        activeSearch=input; activeKind=KindBox.SelectedIndex==1?"Sound":"Mod"; await LoadCatalog();
     }
-    async void KindChanged(object sender,SelectionChangedEventArgs e) { if(IsLoaded && !busy && !settingFilters) { activeKind=KindBox.SelectedIndex==1?"Sound":"Mod";selectedCategory=selectedHero="";page=1;await LoadCatalog(); } }
-    async void Previous(object sender,RoutedEventArgs e) { if(page>1) { page--; await LoadCatalog(); } }
-    async void Next(object sender,RoutedEventArgs e) { page++; await LoadCatalog(); }
+    async void KindChanged(object sender,SelectionChangedEventArgs e) { if(IsLoaded && !busy && !settingFilters) { activeKind=KindBox.SelectedIndex==1?"Sound":"Mod";selectedCategory=selectedHero="";await LoadCatalog(); } }
     async void ShowCatalog(object sender,RoutedEventArgs e) {SetTab(false);if(CatalogList.SelectedItem is CatalogItem item) {lastDetail=ShowDetail(item);await lastDetail;}}
     void ShowLibrary(object sender,RoutedEventArgs e) { SetTab(true); ClearDetail(); }
     void Cancel(object sender,RoutedEventArgs e)=>operation?.Cancel();

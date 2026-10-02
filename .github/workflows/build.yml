@@ -17,7 +17,7 @@ jobs:
       - name: Restore locked dependencies
         run: dotnet restore DeadlockModManager.csproj --locked-mode
       - name: Build
-        run: dotnet build DeadlockModManager.csproj -c Release --no-restore
+        run: dotnet build DeadlockModManager.csproj -c Release -p:PocketDiagnostics=true --no-restore
       - name: Verify isolated mod and update flows
         shell: pwsh
         run: |

@@ -51,21 +51,37 @@ public partial class MainWindow
         SearchBox.TextChanged+=(_,_)=> {if(IsLoaded && !library) {searchDelay.Stop();searchDelay.Start();}};
         presenceTimer=new DispatcherTimer {Interval=TimeSpan.FromSeconds(3)};presenceTimer.Tick+=(_,_)=>RefreshGame();presenceTimer.Start();
     }
-    void DisplayCatalog(List<CatalogItem> rows)
+    void DisplayCatalog(List<CatalogItem> rows,bool preservePosition=false)
     {
-        catalogRows=rows;settingFilters=true;UpdateCategoryOptions();CatalogList.ItemsSource=rows;settingFilters=false;
+        var panel=Descendants<CatalogTilePanel>(CatalogList).FirstOrDefault();
+        var selected=CatalogList.SelectedItem as CatalogItem;
+        int first=panel==null?0:(int)(panel.VerticalOffset/panel.RowStride)*panel.Columns;
+        string? anchor=preservePosition && first<catalogRows.Count?UnifiedCatalog.Identity(catalogRows[first]):null;
+        double within=panel==null?0:panel.VerticalOffset%panel.RowStride;
+        catalogRows=rows;settingFilters=true;
+        try
+        {
+            UpdateCategoryOptions();CatalogList.ItemsSource=rows;
+            CatalogList.SelectedItem=preservePosition && selected!=null?rows.FirstOrDefault(x=>UnifiedCatalog.Identity(x)==UnifiedCatalog.Identity(selected)):null;
+            CatalogList.UpdateLayout();
+            panel=Descendants<CatalogTilePanel>(CatalogList).FirstOrDefault();
+            int index=anchor==null?-1:rows.FindIndex(x=>UnifiedCatalog.Identity(x)==anchor);
+            panel?.SetVerticalOffset(index>=0?index/panel.Columns*panel.RowStride+within:0);
+            FeedSummary.Text=L.T("Найдено: ")+CatalogList.Items.Count;
+        }
+        finally {settingFilters=false;}
     }
     async Task ApplyCatalogFilter()
     {
-        if(!favoritesView) {if(IsLoaded && !busy) {page=1;await LoadCatalog();}return;}
-        var result=UnifiedCatalog.Query(UnifiedCatalog.Merge(catalogRows),"","",1,SelectedCategory,sortIndex,perPage:int.MaxValue,hero:selectedHero);
-        CatalogList.ItemsSource=result.Items;EmptyLabel.Visibility=result.Total==0?Visibility.Visible:Visibility.Collapsed;
+        if(!favoritesView) {if(IsLoaded && !busy) await LoadCatalog();return;}
+        var result=UnifiedCatalog.Query(UnifiedCatalog.Merge(catalogRows).Where(x=>CatalogContent.Matches(x.Item,contentFilter,App.Account?.SignedIn==true)),"","",1,SelectedCategory,sortIndex,perPage:int.MaxValue,hero:selectedHero);
+        CatalogList.ItemsSource=result.Items;Descendants<ScrollViewer>(CatalogList).FirstOrDefault()?.ScrollToTop();FeedSummary.Text=L.T("Найдено: ")+result.Total;EmptyLabel.Visibility=result.Total==0?Visibility.Visible:Visibility.Collapsed;
     }
     void FilterLibrary(object sender,TextChangedEventArgs e) {if(library) RefreshLibrary();}
     void FeaturePage(string title,string description)
     {
         ClearDetail();FeatureContent.Children.Clear();FeatureScreen.Visibility=Visibility.Visible;
-        CatalogList.Visibility=LibraryList.Visibility=SearchPanel.Visibility=LibraryActions.Visibility=FiltersPanel.Visibility=Paging.Visibility=ApplyPanel.Visibility=EmptyLabel.Visibility=Visibility.Collapsed;
+        CatalogList.Visibility=LibraryList.Visibility=SearchPanel.Visibility=LibraryActions.Visibility=FiltersPanel.Visibility=FeedSummary.Visibility=ApplyPanel.Visibility=EmptyLabel.Visibility=Visibility.Collapsed;
         DetailTitle.Text=title;DetailText.Text=description;
         DetailActions.Visibility=Visibility.Collapsed;FormatHelp.Visibility=Visibility.Collapsed;
         library=false;favoritesView=false;
@@ -86,7 +102,7 @@ public partial class MainWindow
     }
     void ShowFavorites(object sender,RoutedEventArgs e)
     {
-        SetTab(false);favoritesView=true;SetNavigation(FavoritesTab);ClearDetail();SearchPanel.Visibility=Paging.Visibility=Visibility.Collapsed;
+        SetTab(false);favoritesView=true;SetNavigation(FavoritesTab);ClearDetail();SearchPanel.Visibility=Visibility.Collapsed;
         DisplayCatalog(storage.State.Favorites);EmptyLabel.Text=L.T("Добавляй моды в избранное на странице выбранного мода.");StatusLabel.Text=L.T("Избранное сохранено на этом компьютере.");
     }
     void ShowDownloads(object sender,RoutedEventArgs e)
@@ -223,20 +239,16 @@ public partial class MainWindow
     {
         if(!IsLoaded || busy || library || favoritesView || FeatureScreen.Visibility==Visibility.Visible) return;
         var selected=CatalogList.SelectedItem as CatalogItem;
-        var result=await sources.QueryUnified(activeKind,activeSearch,page,SelectedCategory,sortIndex,CancellationToken.None,selectedHero);
-        total=result.Total;perPage=result.PerPage;DisplayCatalog(result.Items);settingFilters=true;
-        PageLabel.Text=L.T($"Страница {page} из {Math.Max(1,(int)Math.Ceiling(total/(double)perPage))} · Всего: {total}");
-        PreviousButton.IsEnabled=page>1;NextButton.IsEnabled=page*perPage<total;
+        var result=await sources.QueryUnified(activeKind,activeSearch,1,SelectedCategory,sortIndex,CancellationToken.None,selectedHero,perPage:int.MaxValue,content:contentFilter);
+        total=result.Total;DisplayCatalog(result.Items,true);
         var retained=selected==null?null:result.Items.FirstOrDefault(x=>UnifiedCatalog.Identity(x)==UnifiedCatalog.Identity(selected));
-        CatalogList.SelectedItem=retained??result.Items.FirstOrDefault();
-        settingFilters=false;
-        if(retained==null) {ClearDetail();if(CatalogList.SelectedItem is CatalogItem fresh) lastDetail=ShowDetail(fresh);}
+        if(retained==null) ClearDetail();
         EmptyLabel.Visibility=result.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
-        if(result.Total==0) EmptyLabel.Text=sources.IsRefreshing?L.T("Каталог загружается в фоне. Результаты появятся здесь."):L.T("Ничего не найдено. Попробуй другое название или страницу.");
+        if(result.Total==0) EmptyLabel.Text=sources.IsRefreshing?L.T("Каталог загружается в фоне. Результаты появятся здесь."):L.T("Ничего не найдено. Сбрось фильтры или попробуй другое название.");
     }
     void ReloadLocale()
     {
-        DisplayCatalog(catalogRows);RefreshGame();if(library) RefreshLibrary();
+        DisplayCatalog(catalogRows,true);RefreshGame();RefreshAccount();if(library) RefreshLibrary();
         if(FeatureScreen.Visibility==Visibility.Visible) {if(featureId=="profiles") ShowProfiles(this,new RoutedEventArgs());else ShowDownloads(this,new RoutedEventArgs());}
         else if(library && LibraryList.SelectedItem!=null) SelectedLibraryMod(this,null!);
     }

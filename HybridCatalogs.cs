@@ -22,16 +22,18 @@ public sealed class HybridCatalogs
         foreach(var (name,catalog) in catalogs) catalog.Changed+=()=>{lock(unifiedGate) unifiedCache=null;Changed?.Invoke(name);};
     }
     public IModCatalog Get(string name)=>Sources.TryGetValue(name,out var value)?value:Sources["GameBanana"];
+    public void ResetSearch()=>catalogs["GameBanana"].ResetSearch();
     public List<string> Categories(string name,string kind)=>catalogs.TryGetValue(name,out var c)?c.Categories(kind):[];
     public Task<CatalogPage> Query(string name,string kind,string search,int page,string category,int sort,CancellationToken token)=>catalogs.GetValueOrDefault(name,catalogs["GameBanana"]).Query(kind,search,page,category,sort,token);
     List<UnifiedEntry> Unified() {lock(unifiedGate) return unifiedCache??=UnifiedCatalog.Merge(catalogs.Values.SelectMany(x=>x.Snapshot()));}
     public List<string> UnifiedCategories(string kind)=>UnifiedCatalog.Categories(Unified(),kind);
-    public List<CatalogFilter> HeroFilters(string kind)=>CatalogTaxonomy.HeroFilters(Unified(),kind);
-    public List<CatalogFilter> TypeFilters(string kind,string hero="")=>CatalogTaxonomy.TypeFilters(Unified().Where(x=>hero=="" || (hero=="__general"?x.Heroes.Count==0:x.Heroes.Contains(hero))),kind);
-    public Task<CatalogPage> QueryUnified(string kind,string search,int page,string category,int sort,CancellationToken token,string hero="")
+    public List<CatalogFilter> HeroFilters(string kind,string content="all")=>CatalogTaxonomy.HeroFilters(Available(content),kind);
+    public List<CatalogFilter> TypeFilters(string kind,string hero="",string content="all")=>CatalogTaxonomy.TypeFilters(Available(content).Where(x=>hero=="" || (hero=="__general"?x.Heroes.Count==0:x.Heroes.Contains(hero))),kind);
+    IEnumerable<UnifiedEntry> Available(string content)=>Unified().Where(x=>CatalogContent.Matches(x.Item,content,App.Account?.SignedIn==true));
+    public Task<CatalogPage> QueryUnified(string kind,string search,int page,string category,int sort,CancellationToken token,string hero="",int perPage=24,string content="all")
     {
         token.ThrowIfCancellationRequested();if(allowRemoteSearch) catalogs["GameBanana"].EnrichSearch(kind,CatalogTaxonomy.Search(search).RemoteText,token);
-        return Task.FromResult(UnifiedCatalog.Query(Unified(),kind,search,page,category,sort,hero:hero));
+        return Task.FromResult(UnifiedCatalog.Query(Available(content),kind,search,page,category,sort,perPage:perPage,hero:hero));
     }
     public async Task Warm(CancellationToken token)
     {
@@ -88,6 +90,7 @@ public sealed class HybridCatalog : IModCatalog
     }
     public List<string> Categories(string kind) {lock(gate) return rows.Where(x=>x.Kind==kind).Select(x=>x.Category).Where(x=>x!="").Distinct().OrderBy(x=>x).ToList();}
     public List<CatalogItem> Snapshot() {lock(gate) return rows.ToList();}
+    public void ResetSearch() {request?.Cancel();request?.Dispose();request=null;lock(gate) {remoteQueries.Clear();pendingQuery="";}}
     public HashSet<string> RemoteMatches(string kind,string search) {lock(gate) return (remoteQueries.GetValueOrDefault(kind+":"+search.Trim()).Items??[]).Select(UnifiedCatalog.Identity).ToHashSet();}
     public void EnrichSearch(string kind,string search,CancellationToken token)
     {

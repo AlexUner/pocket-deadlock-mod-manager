@@ -27,6 +27,8 @@ Manage the supported VPK workflow in one desktop tool: discover, download or imp
 ### Supported workflows
 
 - Browse Catalog and Favorites as adaptive cover tiles. Images load near the viewport with four concurrent requests; shared memory and decoded PNG caching avoid duplicate tile/detail requests and support subsequent offline viewing. Missing images leave a selectable tile. Arrow keys follow tile rows and columns; compact-height windows reduce cover height to retain names. Full names and captions are available in tooltips.
+- Use a continuous virtualized feed for Catalog, search and Favorites. The disk index exposes all matching records without page navigation; only visible cards and two upcoming rows are instantiated. Prefetch upcoming covers; retain a scroll anchor during indexing; reset scrolling on a new search. Fetch details and variants only after selection.
+- Log in or register on the official GameBanana website inside an isolated WebView2 profile. Verify the session with GameBanana, encrypt cookies for the current Windows account, scope requests to the GameBanana website and remove the saved session on logout. Offer All available, Regular and Sensitive / NSFW content filters; hidden content needs a connected account. The user controls website confirmation and visibility preferences.
 - Browse mods and sounds in one catalog; search names, authors, recognized heroes and mod types; open a GameBanana URL. Hero aliases recognize page/Paige/пейдж and common Russian names. Separate searchable hero/type pickers support keyboard selection and reset. Mod-type counts follow the selected or searched hero. Sorting by update time, name, downloads or likes is a secondary menu.
 - Keep local favorites. Queue downloads with two active transfers, cancellation, and a saved operation history.
 - Import VPK, ZIP, RAR, and 7Z using a file dialog or drag and drop. Choose VPK files inside archives. Scan existing `game/citadel/addons` and copy selected VPK files into the library.
@@ -47,6 +49,7 @@ Manage the supported VPK workflow in one desktop tool: discover, download or imp
 - Removing an entry removes it from the library selection. Stored content remains for recovery; the game's applied set changes on the next Apply.
 - Catalog availability, checksums, and structural VPK checks do not establish current-game compatibility or guarantee antivirus acceptance.
 - The application is independent of Valve and the catalog providers. Similar capabilities do not establish identical parity with another manager.
+- Diagnostic checks and automatic image capture are developer-only and are excluded from normal builds. The 0.6 release is on hold after a Kaspersky behavioral detection in a developer UI-check process; previous file scans do not resolve this detection.
 
 ## Brand Commitments
 

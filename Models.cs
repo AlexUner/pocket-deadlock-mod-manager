@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace PocketDeadlock;
 
-public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0,string Hero="",string ModType="")
+public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0,string Hero="",string ModType="",string ContentRatings="",string InitialVisibility="")
 {
     public string Caption => CatalogTaxonomy.Caption(this);
 }
