@@ -46,7 +46,7 @@ public sealed class GameBananaLoginWindow : Window
             await browser.EnsureCoreWebView2Async(environment);
             var core=browser.CoreWebView2;core.Settings.AreHostObjectsAllowed=false;core.Settings.IsWebMessageEnabled=false;
             core.Settings.AreDevToolsEnabled=false;core.Settings.IsStatusBarEnabled=false;
-            if(!account.SignedIn) core.CookieManager.DeleteAllCookies();
+            // Keep this app's browser login until explicit logout, even if HTTP verification failed.
             core.NavigationStarting+=(_,e)=>
             {
                 if(!GameBananaAccount.SessionHost(e.Uri)) {e.Cancel=true;status.Text=L.T("Открой внешнюю ссылку в обычном браузере; здесь используется только GameBanana.");return;}
@@ -82,8 +82,8 @@ public sealed class GameBananaLoginWindow : Window
         {
             if(!await Recognized()) {status.Text=L.T("Сначала заверши вход на GameBanana.");return;}
             var cookies=await browser.CoreWebView2.CookieManager.GetCookiesAsync("https://gamebanana.com/");
-            account.Save(cookies.Select(x=>new AccountCookie(x.Name,x.Value,x.Domain,x.Path,x.IsSecure,x.IsHttpOnly,x.IsSession?default:x.Expires.ToUniversalTime())),true);
-            if(!await account.Verify(CancellationToken.None)) {status.Text=L.T("GameBanana не подтвердил вход. Войди еще раз.");return;}
+            account.Save(cookies.Select(x=>new AccountCookie(x.Name,x.Value,x.Domain,x.Path,x.IsSecure,x.IsHttpOnly,x.IsSession?default:x.Expires.ToUniversalTime())),true,browser.CoreWebView2.Settings.UserAgent);
+            if(!await account.Verify(CancellationToken.None)) {status.Text=L.T("Сайт выполнил вход, но менеджер не подтвердил сеанс. Нажми «Использовать этот аккаунт» еще раз; повторный ввод пароля не нужен.");return;}
             Connected=true;DialogResult=true;
         }
         catch(Exception) {account.Forget();status.Text=L.T("Не удалось сохранить вход. Повтори после загрузки страницы.");}

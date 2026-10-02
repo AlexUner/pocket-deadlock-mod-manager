@@ -112,6 +112,8 @@ GameBanana не передал сеанс входа. Повтори вход.|G
 Для скрытых модов войди в GameBanana и проверь настройки контента аккаунта.|For hidden mods, log in to GameBanana and check your account content settings.
 Аккаунт подключен. Каталог учитывает доступ GameBanana; выбери нужный фильтр контента.|Account connected. The catalog uses your GameBanana access; select a content filter.
 GameBanana не подтвердил вход. Войди еще раз.|GameBanana did not confirm the login. Log in again.
+Не удалось прочитать параметры браузера. Закрой окно входа и открой его снова.|Unable to read browser settings. Close the sign-in window and open it again.
+Сайт выполнил вход, но менеджер не подтвердил сеанс. Нажми «Использовать этот аккаунт» еще раз; повторный ввод пароля не нужен.|The website signed you in, but the manager could not verify the session. Click Use this account again; you do not need to re-enter your password.
 Скины, интерфейс и звуки из GameBanana.|Skins, interface mods and sounds from GameBanana.
 Вариант загрузки|Download variant
 Файл мода|Mod file

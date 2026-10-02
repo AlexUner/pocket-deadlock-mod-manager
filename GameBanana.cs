@@ -18,21 +18,31 @@ public interface IModCatalog
 
 public sealed class GameBanana : IModCatalog
 {
+    public const string DefaultUserAgent="PocketDeadlock/0.6";
     static readonly HttpClient Http = new(new HttpClientHandler { AllowAutoRedirect = false,UseCookies=false }) { Timeout = TimeSpan.FromMinutes(10) };
     const string Api = "https://gamebanana.com/apiv11/";
     public static bool TrustedUrl(string value)
         => Uri.TryCreate(value, UriKind.Absolute, out var u) && u.Scheme == "https" && u.IsDefaultPort && string.IsNullOrEmpty(u.UserInfo)
         && (u.Host.Equals("gamebanana.com", StringComparison.OrdinalIgnoreCase) || u.Host.EndsWith(".gamebanana.com", StringComparison.OrdinalIgnoreCase));
 
+    internal static HttpRequestMessage GetRequest(string url,GameBananaAccount? account)
+    {
+        if(!TrustedUrl(url)) throw new IOException("Источник загрузки не принадлежит GameBanana.");
+        var request=new HttpRequestMessage(HttpMethod.Get,url);
+        request.Headers.UserAgent.ParseAdd(account?.UserAgent(url)??DefaultUserAgent);
+        string cookie=account?.Header(url)??"";
+        if(cookie!="")
+        {
+            request.Headers.TryAddWithoutValidation("Cookie",cookie);
+            request.Headers.CacheControl=new System.Net.Http.Headers.CacheControlHeaderValue{NoCache=true};
+        }
+        return request;
+    }
     public static async Task<HttpResponseMessage> Get(string url, CancellationToken token)
     {
         for (int i = 0; i < 6; i++)
         {
-            if (!TrustedUrl(url)) throw new IOException("Источник загрузки не принадлежит GameBanana.");
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.UserAgent.ParseAdd("PocketDeadlock/0.6");
-            string cookie=App.Account?.Header(url)??"";
-            if(cookie!="") request.Headers.TryAddWithoutValidation("Cookie",cookie);
+            using var request=GetRequest(url,App.Account);
             var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
             if(response.Headers.TryGetValues("Set-Cookie",out var changed)) App.Account?.Accept(url,changed);
             if ((int)response.StatusCode is >= 300 and < 400)
