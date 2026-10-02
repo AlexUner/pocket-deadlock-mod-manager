@@ -14,17 +14,21 @@
       <StackPanel>
         <TextBlock Text="PocketDeadlock" FontSize="26" FontWeight="SemiBold" />
         <TextBlock Text="{local:I18n Text='Моды, звуки и твои наборы'}" Foreground="{DynamicResource Muted}" FontSize="13" Margin="0,4,0,0" />
+        <TextBlock x:Name="VersionLabel" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,4,0,0" />
       </StackPanel>
-      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+      <WrapPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right" MaxWidth="810">
+        <Button x:Name="ManagerUpdatesButton" Click="OpenManagerUpdates" Margin="0,0,8,4" ToolTip="{local:I18n Text='Проверить обновления PocketDeadlock'}" AutomationProperties.Name="{local:I18n Text='Обновления менеджера'}">
+          <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE895;" FontFamily="Segoe MDL2 Assets" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock x:Name="ManagerUpdatesLabel" Text="{local:I18n Text='Обновления'}"/></StackPanel>
+        </Button>
         <Button x:Name="AccountButton" Content="{local:I18n Text='Войти GameBanana'}" Click="OpenAccount" Margin="0,0,8,0" />
         <Button Content="{local:I18n Text='Настройки'}" Click="UpdateSettings" Margin="0,0,8,0" />
         <Button Content="{local:I18n Text='Папка игры'}" Click="ChooseGame" Margin="0,0,8,0" />
         <Button x:Name="LaunchButton" Content="{local:I18n Text='Запустить Deadlock'}" Click="Launch" Style="{StaticResource Primary}" />
-      </StackPanel>
+      </WrapPanel>
     </Grid>
     <Border Grid.Row="1" Background="{DynamicResource Panel}" Padding="16,12" Margin="0,0,0,20" CornerRadius="4">
       <StackPanel>
-        <TextBlock x:Name="GameStatus" FontWeight="SemiBold" />
+        <TextBlock x:Name="GameStatus" FontWeight="SemiBold" TextWrapping="Wrap" />
         <TextBlock x:Name="IndexStatus" Text="{local:I18n Text='Локальный индекс готов к поиску'}" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,4,0,0" />
         <TextBlock x:Name="GamePathLabel" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
       </StackPanel>
@@ -148,7 +152,7 @@
         </WrapPanel>
       </Grid>
       <Border Grid.Column="2" Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="4">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer x:Name="DetailScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel Margin="20">
             <TextBlock x:Name="DetailTitle" Text="{local:I18n Text='Выбери мод в каталоге'}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,12,0,8" />
             <TextBlock x:Name="DetailMeta" Text="{local:I18n Text='Скины, интерфейс и звуки из GameBanana.'}" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Margin="0,0,0,16" />
@@ -195,9 +199,9 @@
         </Grid.ColumnDefinitions>
         <StackPanel>
           <ProgressBar x:Name="Progress" Height="3" Visibility="Collapsed" IsIndeterminate="True" Foreground="{DynamicResource Accent}" Margin="0,0,0,8" />
-          <TextBlock x:Name="StatusLabel" Text="{local:I18n Text='Готово'}" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxHeight="66" />
+          <ScrollViewer MaxHeight="96" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><TextBlock x:Name="StatusLabel" Text="{local:I18n Text='Готово'}" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" /></ScrollViewer>
         </StackPanel>
-        <Button Grid.Column="1" x:Name="AppUpdateButton" Content="{local:I18n Text='Установить обновление менеджера'}" Click="InstallAppUpdate" Visibility="Collapsed" Margin="12,0,0,0" />
+        <Button Grid.Column="1" x:Name="AppUpdateButton" Content="{local:I18n Text='Установить и перезапустить'}" Click="InstallAppUpdate" Style="{StaticResource Primary}" Visibility="Collapsed" Margin="12,0,0,0" />
         <Button Grid.Column="2" x:Name="CancelButton" Content="{local:I18n Text='Отмена'}" Click="Cancel" Visibility="Collapsed" Margin="12,0,0,0" />
       </Grid>
     </Border>

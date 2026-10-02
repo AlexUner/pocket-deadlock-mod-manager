@@ -9,6 +9,7 @@
     <AssemblyName>PocketDeadlock</AssemblyName>
     <Version>0.6.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>assets\app-icon.ico</ApplicationIcon>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(PocketDiagnostics)' == 'true'">
@@ -18,4 +19,8 @@
     <Compile Remove="SelfTests*.cs" />
   </ItemGroup>
   <ItemGroup><PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" /><PackageReference Include="SharpCompress" Version="0.50.4" /></ItemGroup>
+  <ItemGroup>
+    <None Remove="assets\app-icon.ico" />
+    <Resource Include="assets\app-icon.ico" />
+  </ItemGroup>
 </Project>

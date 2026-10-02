@@ -1,5 +1,12 @@
 # PocketDeadlock - Deadlock Mod Manager for Windows
 
+<img src="assets/app-icon.png" width="64" height="64" alt="PocketDeadlock app icon" />
+
+[![Windows build](https://github.com/AlexUner/pocket-deadlock-mod-manager/actions/workflows/build.yml/badge.svg)](https://github.com/AlexUner/pocket-deadlock-mod-manager/actions/workflows/build.yml)
+[![Latest release](https://img.shields.io/github/v/release/AlexUner/pocket-deadlock-mod-manager)](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/AlexUner/pocket-deadlock-mod-manager/total)](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases)
+[![License](https://img.shields.io/github/license/AlexUner/pocket-deadlock-mod-manager)](LICENSE)
+
 A native Windows x64 tool for finding Deadlock mods, managing a local VPK library, and switching mod sets. Built with C# and WPF. Independent of Valve, GameBanana, Deadlocker, and DeadlockMods.
 
 [Download the latest release](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest) · [Русская инструкция](#русская-инструкция)
@@ -28,7 +35,7 @@ Version 0.6 is under review. A developer UI-check process triggered Kaspersky Sy
 - **Hero-aware local search:** `page`, `Paige` and `пейдж` recognize Paige, including mods whose title omits the hero. Russian names and common aliases are supported for the recognized hero roster. A saved disk index, background startup refresh and debounced search keep repeated queries local. Fresh GameBanana rows are merged, then filtered by indexed title, author, hero and type metadata; unrelated full-text hits cannot bypass relevance. Paste a GameBanana URL to open it directly.
 - **Local library:** import VPK, ZIP, RAR, or 7Z; drag files into the window; choose VPK files inside archives; copy selected old VPK files from the game's `addons` folder.
 - **Downloads and favorites:** two simultaneous transfers, cancellation, saved operation history, and local favorites.
-- **Priority and overlaps:** enable mods, reorder by dragging or Move up/Move down, and explicitly permit a higher-priority mod to override overlapping resources.
+- **Priority and overlaps:** enable mods, reorder by dragging or Move up/Move down, and explicitly permit a higher-priority mod to override overlapping game resources. Root README, LICENSE and similar documentation files do not cause conflicts; nested text files and configurations still do.
 - **Profiles:** save and switch sets; import/export JSON; copy a `PD1-...` key to restore a catalog-backed set on another computer, preserving order, variants, selected VPK paths, and override choices.
 - **Mod updates:** preserve the chosen variant, retain previous revisions, and roll back. Ambiguous replacements require manual selection; rollback disables that mod's automatic update option.
 - **Game integration:** detect Steam libraries, choose a folder, apply or disable the manager's set, and launch through Steam. Apply, Disable, and Launch are blocked while Deadlock is detected as running.
@@ -59,7 +66,15 @@ A key contains references and settings, not mod files or cloud storage. It inclu
 
 Checks run at startup and every 30 minutes while the manager is open, according to Settings. Global and per-mod options control automatic downloads. A mod update or rollback becomes pending game application. You can also check manually.
 
-The signed app-update feed uses [the latest GitHub release](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest). A newer verified package is prepared before installation. **Install manager update** closes the manager and requests a restart; closing normally also installs a staged update. The updater verifies the signed release and package again before replacing application files.
+The signed app-update feed uses [the latest GitHub release](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest). Open **Updates** beside the version to check the manager independently of mod updates. Its window shows the last check, progress, retry information and release notes. A newer verified package is prepared before installation. **Install and restart** closes and reopens the manager; closing normally also installs a staged update. The updater verifies the signed release and package again before replacing application files. Language changes re-render the update state from saved codes instead of retaining the old interface language.
+
+### GitHub release automation
+
+Pull requests and pushes to main run Windows compilation, isolated offline checks and ordinary package verification. The artifact is a portable ZIP with runtime and dependency licenses; developer diagnostics and owner data are rejected.
+
+The **Windows release** workflow accepts an existing stable `vMAJOR.MINOR.PATCH` tag matching the project version. A tag push creates a draft release. Manual dispatch can explicitly publish it. It runs the checks again, builds the ordinary runtime, packages it, signs `update-feed.json`, and uploads that feed, the ZIP and `SHA256SUMS.txt` together. A published stable release becomes available to desktop clients through the existing latest-release feed; drafts do not.
+
+Before the first automatic signed release, configure the `RELEASE_SIGNING_KEY` secret in the GitHub **releases** environment with the existing ECDSA private key. It must match `UpdateKey.cs`; the script rejects another key. Never commit the private key. GitHub receives this credential only when the maintainer configures that secret. Manual workflows become available once their file is on the default branch. See [GitHub workflow instructions](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
 
 ## Game files and recovery
 
@@ -176,11 +191,13 @@ PocketDeadlock - менеджер модов Deadlock для Windows x64. Он �
 
 ### Обновления и восстановление
 
+Кнопка **Обновления** рядом с номером версии отдельно проверяет сам менеджер. В окне видны результат, время проверки, ход загрузки и действие **Установить и перезапустить**. При ошибке доступна повторная проверка. Кнопка **Обновить моды** в библиотеке проверяет только моды. Настройки сгруппированы по интерфейсу, модам и менеджеру; адрес подписанного канала находится в **Дополнительно**.
+
 Проверка запускается при открытии менеджера и каждые 30 минут, пока он открыт, согласно настройкам. Обновленные или восстановленные VPK нужно применить к игре. Автоматическую загрузку можно отключить глобально и для отдельного мода.
 
 Программа подключает копии из `Deadlock\game\citadel\pocket_mods` через собственный отмеченный блок в `gameinfo.gi`. **Отключить наши моды** удаляет его, сохраняя остальные настройки. Перед изменением исходные байты сохраняются в `%LOCALAPPDATA%\PocketDeadlock\backups`. В настройках можно открыть папки данных и резервных копий.
 
-Файлы в `addons` и подключения других менеджеров сохраняются. Проверка конфликтов охватывает выбранный набор PocketDeadlock. Удаление записи сохраняет ее содержимое для восстановления; отключение в игре произойдет при следующем применении. Повторное применение неизмененных файлов использует уже проверенные копии.
+Файлы в `addons` и подключения других менеджеров сохраняются. Проверка конфликтов охватывает выбранный набор PocketDeadlock. Корневые README, LICENSE, COPYING, CHANGELOG, AUTHORS и NOTICE без расширения или с расширением .txt, .md, .rst считаются документацией; одинаковые инструкции не мешают применять разные моды. Вложенные текстовые файлы, конфигурации, модели и материалы продолжают проверяться. Удаление записи сохраняет ее содержимое для восстановления; отключение в игре произойдет при следующем применении. Повторное применение неизмененных файлов использует уже проверенные копии.
 
 Для полного удаления закройте игру, отключите наши моды, закройте менеджер и удалите его папку, `%LOCALAPPDATA%\PocketDeadlock` и только `pocket_mods` внутри игры. Сохраните `addons` и остальные файлы игры. Для обычного отключения предпочтительнее штатная кнопка: старая резервная копия может не учитывать обновления Steam.
 

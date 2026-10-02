@@ -33,6 +33,7 @@ PocketDeadlock · Менеджер модов|PocketDeadlock · Mod Manager
 Моя библиотека|My library
 Избранное|Favorites
 Загрузки и история|Downloads and history
+Здесь появятся загрузки. Выбери мод в каталоге и нужный вариант файла.|Downloads will appear here. Choose a mod in the catalog and a file variant.
 Загрузки|Downloads
 Профили наборов|Loadout profiles
 Профили|Profiles
@@ -116,6 +117,9 @@ GameBanana не подтвердил вход. Войди еще раз.|GameBan
 Сайт выполнил вход, но менеджер не подтвердил сеанс. Нажми «Использовать этот аккаунт» еще раз; повторный ввод пароля не нужен.|The website signed you in, but the manager could not verify the session. Click Use this account again; you do not need to re-enter your password.
 Скины, интерфейс и звуки из GameBanana.|Skins, interface mods and sounds from GameBanana.
 Вариант загрузки|Download variant
+Выбери вариант для скачивания|Choose a variant to download
+Файл заблокирован источником|File blocked by the source
+В библиотеке ничего не найдено. Попробуй другое название или очисти поиск.|No library matches. Try another name or clear the search.
 Файл мода|Mod file
 Скачать в библиотеку|Download to library
 Открыть страницу автора|Open author's page
@@ -404,5 +408,26 @@ gameinfo.gi является ссылкой.|gameinfo.gi is a link.
 Посмотреть варианты|View variants
 Повторите позже.|Try again later.
 Выбери моды и их порядок. Изменения применятся после выхода из игры.|Choose mods and their order. Apply changes after closing the game.
+Обновления менеджера|Manager updates
+Обновления|Updates
+Проверить обновления PocketDeadlock|Check for PocketDeadlock updates
+Обновление готово|Update ready
+Проверяем…|Checking…
+Проверяем обновления менеджера…|Checking for manager updates…
+Проверяем обновления модов…|Checking for mod updates…
+Скачиваем обновление менеджера…|Downloading manager update…
+ готова к установке.| is ready to install.
+Не удалось проверить обновления. Повтори позже.|Could not check for updates. Try again later.
+Проверить сейчас|Check now
+Установить и перезапустить|Install and restart
+Последняя проверка менеджера:|Last manager check:
+Подробности:|Details:
+Пакет проверен. Установка закроет и снова откроет менеджер. Обычное закрытие также установит подготовленное обновление.|The package is verified. Installation closes and reopens the manager. Closing normally also installs the prepared update.
+Автоматическая проверка выполняется при запуске и каждые 30 минут согласно настройкам. Моды и файлы игры не меняются при обновлении программы.|Automatic checks run at startup and every 30 minutes according to Settings. Updating the manager does not change mods or game files.
+Настройки PocketDeadlock|PocketDeadlock settings
+Интерфейс|Interface
+Моды и запуск|Mods and launch
+Дополнительно|Advanced
+Проверить снова|Check again
 """;
 }

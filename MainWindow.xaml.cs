@@ -115,17 +115,22 @@ public partial class MainWindow : Window
     void RefreshLibrary()
     {
         string? selected=(LibraryList.SelectedItem as LibraryMod)?.Id;
-        LibraryList.ItemsSource=null; LibraryList.ItemsSource=storage.State.Mods.Where(x=>x.Name.Contains(LibrarySearch.Text,StringComparison.CurrentCultureIgnoreCase)).ToList();
-        if(selected!=null) LibraryList.SelectedItem=storage.State.Mods.FirstOrDefault(x=>x.Id==selected);
-        EmptyLabel.Text=L.T("Здесь появятся скачанные моды.\nМожно также импортировать VPK или архив с компьютера.");
-        EmptyLabel.Visibility=storage.State.Mods.Count==0?Visibility.Visible:Visibility.Collapsed;
+        var visible=storage.State.Mods.Where(x=>x.Name.Contains(LibrarySearch.Text,StringComparison.CurrentCultureIgnoreCase)).ToList();
+        LibraryList.ItemsSource=null; LibraryList.ItemsSource=visible;
+        if(selected!=null)
+        {
+            LibraryList.SelectedItem=visible.FirstOrDefault(x=>x.Id==selected);
+            if(LibraryList.SelectedItem==null) ClearDetail();
+        }
+        EmptyLabel.Text=storage.State.Mods.Count==0?L.T("Здесь появятся скачанные моды.\nМожно также импортировать VPK или архив с компьютера."):L.T("В библиотеке ничего не найдено. Попробуй другое название или очисти поиск.");
+        EmptyLabel.Visibility=visible.Count==0?Visibility.Visible:Visibility.Collapsed;
         RefreshGame();
     }
     async Task LoadCatalog()=>await Run(L.T("Загружаем каталог…"),async token=>
     {
         SetTab(false);
         var result=await sources.QueryUnified(activeKind,activeSearch,1,SelectedCategory,sortIndex,token,selectedHero,perPage:int.MaxValue,content:contentFilter);
-        DisplayCatalog(result.Items);total=result.Total;FeedSummary.Text=L.T("Найдено: ")+total;
+        catalogShowsFavorites=false;DisplayCatalog(result.Items);total=result.Total;FeedSummary.Text=L.T("Найдено: ")+total;
         Descendants<ScrollViewer>(CatalogList).FirstOrDefault()?.ScrollToTop();
         EmptyLabel.Text=L.T("Ничего не найдено. Сбрось фильтры или попробуй другое название.");
         EmptyLabel.Visibility=result.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
@@ -143,6 +148,7 @@ public partial class MainWindow : Window
     void ClearDetail(bool cancelRequest=true)
     {
         if(cancelRequest) detailRequest?.Cancel();
+        DetailScroll.ScrollToTop();
         detailGeneration++;
         details=null; selectedLocal=null; sourceUrl=""; PreviewImage.Source=null;
         LibraryTools.Visibility=Visibility.Collapsed;
@@ -164,7 +170,7 @@ public partial class MainWindow : Window
         DetailMeta.Text+=L.T($"\nЗагрузок: {details.Item.Downloads} · Оценок: {details.Item.Likes}");RefreshFavorite();
         FilesBox.ItemsSource=details.Files; FilesBox.SelectedIndex=details.Files.Count==1?0:-1;
         FilesBox.Visibility=FileLabel.Visibility=Visibility.Visible;
-        DownloadButton.Content=L.T("Скачать в библиотеку"); DownloadButton.IsEnabled=details.Files.Count>0;
+        DownloadButton.Content=L.T("Скачать в библиотеку");RefreshDownloadVariant();
         if(details.Files.Count==0) StatusLabel.Text=L.T("Для этого мода нет прямых загрузок. Открой страницу автора.");
         else if(details.Files.Count>1) StatusLabel.Text=L.T("У мода несколько файлов. Выбери нужный вариант загрузки.");
         if(details.Item.Image!="")
@@ -176,6 +182,14 @@ public partial class MainWindow : Window
             catch(OperationCanceledException) { throw; }
             catch { /* A preview failure must not disable the mod's files. */ }
         }
+    }
+    void DownloadVariantChanged(object sender,SelectionChangedEventArgs e)=>RefreshDownloadVariant();
+    void RefreshDownloadVariant()
+    {
+        if(details==null) return;
+        var file=FilesBox.SelectedItem as RemoteFile;
+        DownloadButton.IsEnabled=file is {Blocked:false};
+        FileLabel.Text=L.T(file==null && details.Files.Count>1?"Выбери вариант для скачивания":file?.Blocked==true?"Файл заблокирован источником":"Вариант загрузки");
     }
     async void SelectedMod(object sender,SelectionChangedEventArgs e)
     {
@@ -211,7 +225,11 @@ public partial class MainWindow : Window
         activeSearch=input; activeKind=KindBox.SelectedIndex==1?"Sound":"Mod"; await LoadCatalog();
     }
     async void KindChanged(object sender,SelectionChangedEventArgs e) { if(IsLoaded && !busy && !settingFilters) { activeKind=KindBox.SelectedIndex==1?"Sound":"Mod";selectedCategory=selectedHero="";await LoadCatalog(); } }
-    async void ShowCatalog(object sender,RoutedEventArgs e) {SetTab(false);if(CatalogList.SelectedItem is CatalogItem item) {lastDetail=ShowDetail(item);await lastDetail;}}
+    async void ShowCatalog(object sender,RoutedEventArgs e)
+    {
+        if(catalogShowsFavorites) {await LoadCatalog();return;}
+        SetTab(false);if(CatalogList.SelectedItem is CatalogItem item) {lastDetail=ShowDetail(item);await lastDetail;}
+    }
     void ShowLibrary(object sender,RoutedEventArgs e) { SetTab(true); ClearDetail(); }
     void Cancel(object sender,RoutedEventArgs e)=>operation?.Cancel();
     void ChooseGame(object sender,RoutedEventArgs e)
@@ -301,5 +319,5 @@ public partial class MainWindow : Window
     {
         await Task.Run(()=>game.Disable(),token); StatusLabel.Text=L.T("Подключение PocketDeadlock удалено. Библиотека и старые моды сохранены.");
     });
-    async void CheckUpdates(object sender,RoutedEventArgs e)=>await RunUpdates(false);
+    async void CheckUpdates(object sender,RoutedEventArgs e)=>await RunUpdates(false,false);
 }

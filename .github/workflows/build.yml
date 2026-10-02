@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: windows-latest
@@ -17,16 +20,19 @@ jobs:
       - name: Restore locked dependencies
         run: dotnet restore DeadlockModManager.csproj --locked-mode
       - name: Build
-        run: dotnet build DeadlockModManager.csproj -c Release -p:PocketDiagnostics=true --no-restore
+        run: dotnet build DeadlockModManager.csproj -c Release -p:PocketDiagnostics=true --no-restore -o artifacts/diagnostics
       - name: Verify isolated mod and update flows
         shell: pwsh
         run: |
-          $check = Start-Process -FilePath './bin/Release/net10.0-windows/PocketDeadlock.exe' -ArgumentList '--self-test','./artifacts/checks','--offline' -Wait -PassThru
+          $check = Start-Process -FilePath './artifacts/diagnostics/PocketDeadlock.exe' -ArgumentList '--self-test','./artifacts/checks','--offline' -Wait -PassThru
           if ($check.ExitCode -ne 0) { Get-Content './artifacts/checks/FAILURE.txt'; throw 'Checks failed' }
           Get-Content './artifacts/checks/test-results.txt'
       - name: Publish portable Windows package
-        run: dotnet publish DeadlockModManager.csproj -c Release -r win-x64 --self-contained true -o artifacts/PocketDeadlock
+        run: dotnet publish DeadlockModManager.csproj -c Release -r win-x64 --self-contained true -p:DebugType=None -p:DebugSymbols=false -o artifacts/PocketDeadlock
+      - name: Verify release package without diagnostic code
+        shell: pwsh
+        run: ./New-PortablePackage.ps1 -PublishFolder './artifacts/PocketDeadlock' -PackagePath './artifacts/package/PocketDeadlock-win-x64.zip'
       - uses: actions/upload-artifact@v4
         with:
           name: PocketDeadlock-win-x64
-          path: artifacts/PocketDeadlock
+          path: artifacts/package

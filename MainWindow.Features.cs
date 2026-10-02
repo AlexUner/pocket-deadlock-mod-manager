@@ -16,7 +16,8 @@ public sealed class TransferItem : INotifyPropertyChanged
     string status=L.T("В очереди");
     public string Status {get=>status;set {status=value;PropertyChanged?.Invoke(this,new(nameof(Status)));}}
     public CancellationTokenSource Cancellation {get;}=new();
-    public bool Finished {get;set;}
+    bool finished;
+    public bool Finished {get=>finished;set {if(finished==value) return;finished=value;PropertyChanged?.Invoke(this,new(nameof(Finished)));}}
     public event PropertyChangedEventHandler? PropertyChanged;
 }
 public partial class MainWindow
@@ -25,16 +26,26 @@ public partial class MainWindow
     readonly SemaphoreSlim downloadSlots=new(2);
     List<CatalogItem> catalogRows=[];
     DispatcherTimer? presenceTimer;
-    bool settingFilters,favoritesView;
+    bool settingFilters,favoritesView,catalogShowsFavorites;
     string? draggedId;
     Point dragStart;
     int ActiveTransfers=>transfers.Count(x=>!x.Finished);
     string SelectedCategory=>selectedCategory;
     DispatcherTimer? searchDelay;
     string featureId="";
+    StackPanel? downloadRows;
+    TextBlock? downloadEmpty;
+    Button? cancelTransfers;
     void InitializeFeatures(bool preview)
     {
         UpdateCategoryOptions();
+        FilesBox.SelectionChanged+=DownloadVariantChanged;
+        transfers.CollectionChanged+=(_,change)=>
+        {
+            if(featureId!="downloads" || FeatureScreen.Visibility!=Visibility.Visible) return;
+            if(change.NewItems!=null) foreach(TransferItem row in change.NewItems) AddTransferRow(row);
+            RefreshTransferActions();
+        };
         LibraryList.PreviewMouseLeftButtonDown+=(_,e)=> {dragStart=e.GetPosition(LibraryList);draggedId=(ItemsControl.ContainerFromElement(LibraryList,e.OriginalSource as DependencyObject) as ListBoxItem)?.DataContext is LibraryMod mod?mod.Id:null;};
         LibraryList.PreviewMouseMove+=(_,e)=>
         {
@@ -103,22 +114,37 @@ public partial class MainWindow
     void ShowFavorites(object sender,RoutedEventArgs e)
     {
         SetTab(false);favoritesView=true;SetNavigation(FavoritesTab);ClearDetail();SearchPanel.Visibility=Visibility.Collapsed;
-        DisplayCatalog(storage.State.Favorites);EmptyLabel.Text=L.T("Добавляй моды в избранное на странице выбранного мода.");StatusLabel.Text=L.T("Избранное сохранено на этом компьютере.");
+        catalogShowsFavorites=true;DisplayCatalog(storage.State.Favorites);EmptyLabel.Text=L.T("Добавляй моды в избранное на странице выбранного мода.");EmptyLabel.Visibility=CatalogList.Items.Count==0?Visibility.Visible:Visibility.Collapsed;StatusLabel.Text=L.T("Избранное сохранено на этом компьютере.");
     }
     void ShowDownloads(object sender,RoutedEventArgs e)
     {
         featureId="downloads";
         FeaturePage(L.T("Загрузки и история"),L.T("Два файла могут скачиваться одновременно. Готовые моды попадут в библиотеку; подключение к игре остается отдельным действием."));
-        var cancel=FeatureButton(L.T("Отменить загрузки"),()=> {foreach(var row in transfers.Where(x=>!x.Finished)) row.Cancellation.Cancel();});cancel.IsEnabled=ActiveTransfers>0;FeatureContent.Children.Add(cancel);
-        foreach(var row in transfers)
-        {
-            var stack=new StackPanel {Margin=new Thickness(0,16,0,0)};
-            stack.Children.Add(new TextBlock {Text=row.Name,FontWeight=FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap});
-            var status=new TextBlock {TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,4,0,8)};status.SetBinding(TextBlock.TextProperty,new System.Windows.Data.Binding(nameof(TransferItem.Status)){Source=row});stack.Children.Add(status);
-            if(!row.Finished) stack.Children.Add(FeatureButton(L.T("Отменить"),()=>row.Cancellation.Cancel()));FeatureContent.Children.Add(stack);
-        }
+        cancelTransfers=FeatureButton(L.T("Отменить загрузки"),()=> {foreach(var row in transfers.Where(x=>!x.Finished)) row.Cancellation.Cancel();});FeatureContent.Children.Add(cancelTransfers);
+        downloadEmpty=new TextBlock {Text=L.T("Здесь появятся загрузки. Выбери мод в каталоге и нужный вариант файла."),TextWrapping=TextWrapping.Wrap,Foreground=(System.Windows.Media.Brush)FindResource("Muted"),Margin=new Thickness(0,16,0,0)};FeatureContent.Children.Add(downloadEmpty);
+        downloadRows=new StackPanel();FeatureContent.Children.Add(downloadRows);
+        foreach(var row in transfers) AddTransferRow(row);
+        RefreshTransferActions();
         FeatureContent.Children.Add(new TextBlock {Text=L.T("История операций"),FontSize=20,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,24,0,8)});
-        foreach(var row in storage.State.Activity.AsEnumerable().Reverse().Take(100)) FeatureContent.Children.Add(new TextBlock {Text=row.Time+" · "+row.Name+"\n"+row.Status,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,14)});
+        foreach(var row in storage.State.Activity.AsEnumerable().Reverse().Take(100)) FeatureContent.Children.Add(new TextBlock {Text=row.Time+" · "+row.Name+"\n"+L.T(row.Status),TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,14)});
+    }
+    void AddTransferRow(TransferItem row)
+    {
+        if(downloadRows==null) return;
+        var stack=new StackPanel {Margin=new Thickness(0,16,0,0)};
+        stack.Children.Add(new TextBlock {Text=row.Name,FontWeight=FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap});
+        var status=new TextBlock {TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,4,0,8)};status.SetBinding(TextBlock.TextProperty,new System.Windows.Data.Binding(nameof(TransferItem.Status)){Source=row});stack.Children.Add(status);
+        var cancel=FeatureButton(L.T("Отменить"),()=>row.Cancellation.Cancel());
+        System.Windows.Automation.AutomationProperties.SetName(cancel,L.T("Отменить")+": "+row.Name);
+        var style=new Style(typeof(Button),(Style)FindResource(typeof(Button)));
+        var finished=new DataTrigger {Binding=new System.Windows.Data.Binding(nameof(TransferItem.Finished)){Source=row},Value=true};finished.Setters.Add(new Setter(VisibilityProperty,Visibility.Collapsed));style.Triggers.Add(finished);cancel.Style=style;
+        stack.Children.Add(cancel);downloadRows.Children.Add(stack);
+    }
+    void RefreshTransferActions()
+    {
+        if(featureId!="downloads" || FeatureScreen.Visibility!=Visibility.Visible) return;
+        if(cancelTransfers!=null) cancelTransfers.IsEnabled=ActiveTransfers>0;
+        if(downloadEmpty!=null) downloadEmpty.Visibility=transfers.Count==0?Visibility.Visible:Visibility.Collapsed;
     }
     Button FeatureButton(string text,Action click)
     {
@@ -154,14 +180,14 @@ public partial class MainWindow
         catch(Exception ex) {row.Status=L.T("Ошибка: "+ex.Message);StatusLabel.Text=row.Status;}
         finally
         {
-            row.Finished=true;if(prepared!=null) storage.CleanupStaging(prepared.Folder);if(temp!=null) storage.CleanupStaging(temp);if(entered) downloadSlots.Release();
+            row.Finished=true;RefreshTransferActions();if(prepared!=null) storage.CleanupStaging(prepared.Folder);if(temp!=null) storage.CleanupStaging(temp);if(entered) downloadSlots.Release();
         }
     }
     void ShowProfiles(object sender,RoutedEventArgs e)
     {
         featureId="profiles";
         FeaturePage(L.T("Профили наборов"),L.T("Сохраняй отдельные наборы для разных героев. Переключение меняет только библиотеку. Во время игры новый набор ожидает применения."));
-        var name=new TextBox {MaxLength=100,Margin=new Thickness(0,0,0,12),ToolTip=L.T("Название нового профиля"),Tag=L.T("Название нового профиля")};FeatureContent.Children.Add(name);
+        var name=new TextBox {MaxLength=100,Margin=new Thickness(0,0,0,12),ToolTip=L.T("Название нового профиля"),Tag=L.T("Название нового профиля")};System.Windows.Automation.AutomationProperties.SetName(name,L.T("Название нового профиля"));FeatureContent.Children.Add(name);
         FeatureContent.Children.Add(FeatureButton(L.T("Сохранить текущий набор"),()=> {try {new Profiles(storage).Capture(name.Text);ShowProfiles(sender,e);}catch(Exception ex) {StatusLabel.Text=L.T(ex.Message);}}));
         FeatureContent.Children.Add(FeatureButton(L.T("Скопировать ключ текущего набора"),()=> {try {Clipboard.SetText(Profiles.Key(new Profiles(storage).Current(L.T("Текущий набор"))));StatusLabel.Text=L.T("Ключ набора скопирован. В нем сохранены варианты и порядок модов.");}catch(Exception ex) {StatusLabel.Text=L.T(ex.Message);}}));
         FeatureContent.Children.Add(FeatureButton(L.T("Импортировать профиль"),()=>
@@ -230,9 +256,22 @@ public partial class MainWindow
         if(e.Data.GetData(DataFormats.FileDrop) is not string[] files) return;
         await Run(L.T("Импортируем файлы…"),async token=> {foreach(var file in files.Where(x=>new[]{".vpk",".zip",".rar",".7z"}.Contains(Path.GetExtension(x).ToLowerInvariant()))) await ImportPrepared(file,Path.GetFileNameWithoutExtension(file),null,null,token);});
     }
-    void Shortcut(object sender,KeyEventArgs e)
+    async void Shortcut(object sender,KeyEventArgs e)
     {
-        if(e.Key==Key.F && Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) {if(library) LibrarySearch.Focus();else SearchBox.Focus();e.Handled=true;}
+        if(e.Key==Key.F && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        {
+            e.Handled=true;if(busy) return;
+            if(library) LibrarySearch.Focus();
+            else
+            {
+                if(SearchPanel.Visibility!=Visibility.Visible)
+                {
+                    if(catalogShowsFavorites) await LoadCatalog();
+                    else {SetTab(false);ClearDetail();}
+                }
+                SearchBox.Focus();
+            }
+        }
         if(e.Key==Key.Escape && busy) operation?.Cancel();
     }
     async Task RefreshIndexedResults()
@@ -248,7 +287,7 @@ public partial class MainWindow
     }
     void ReloadLocale()
     {
-        DisplayCatalog(catalogRows,true);RefreshGame();RefreshAccount();if(library) RefreshLibrary();
+        DisplayCatalog(catalogRows,true);RefreshGame();RefreshAccount();RefreshManagerUpdateUi();if(library) RefreshLibrary();
         if(FeatureScreen.Visibility==Visibility.Visible) {if(featureId=="profiles") ShowProfiles(this,new RoutedEventArgs());else ShowDownloads(this,new RoutedEventArgs());}
         else if(library && LibraryList.SelectedItem!=null) SelectedLibraryMod(this,null!);
     }

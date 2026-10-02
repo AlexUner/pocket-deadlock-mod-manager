@@ -36,7 +36,7 @@ public sealed class LibraryMod
     public string Added { get; set; } = DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm");
     public string UpdateStatus { get; set; } = "";
     public RemoteFile? AvailableUpdate { get; set; }
-    [JsonIgnore] public string Caption => $"{Files.Count} VPK · {Added} · {UpdateStatus}";
+    [JsonIgnore] public string Caption => $"{Files.Count} VPK · {Added} · {L.T(UpdateStatus)}";
 }
 public sealed class AppState
 {
@@ -49,6 +49,10 @@ public sealed class AppState
     public string UpdateFeed { get; set; } = "https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest/download/update-feed.json";
     public string LastUpdateCheck { get; set; } = "";
     public string LastAppUpdateStatus { get; set; } = L.T("Канал выпусков GitHub подключен; проверка еще не выполнена");
+    public string AppUpdateState { get; set; } = "idle";
+    public string AppUpdateVersion { get; set; } = "";
+    public string LastAppUpdateCheck { get; set; } = "";
+    public string LastAppUpdateError { get; set; } = "";
     public string LastCatalog { get; set; } = "GameBanana";
     public bool PendingApply { get; set; }
     public string Language { get; set; } = "system";
