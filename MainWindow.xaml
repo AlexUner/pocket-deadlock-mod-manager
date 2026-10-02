@@ -100,12 +100,15 @@
           </Button>
         </Grid>
         <Grid Grid.Row="3">
-          <ListBox x:Name="CatalogList" SelectionChanged="SelectedMod" AutomationProperties.Name="{local:I18n Text='Каталог модов'}">
+          <ListBox x:Name="CatalogList" SelectionChanged="SelectedMod" PreviewKeyDown="CatalogTileKey" ScrollViewer.CanContentScroll="False" ScrollViewer.VerticalScrollBarVisibility="Auto" KeyboardNavigation.DirectionalNavigation="Contained" AutomationProperties.Name="{local:I18n Text='Каталог модов'}">
+            <ListBox.ItemsPanel><ItemsPanelTemplate><local:CatalogTilePanel/></ItemsPanelTemplate></ListBox.ItemsPanel>
+            <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}"><Setter Property="Margin" Value="0"/><Setter Property="Padding" Value="8"/><Setter Property="AutomationProperties.Name" Value="{Binding Name}"/><Setter Property="AutomationProperties.HelpText" Value="{Binding Caption}"/></Style></ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <StackPanel>
-                  <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
-                  <TextBlock Text="{Binding Caption}" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap" />
+                  <local:CatalogThumbnail Url="{Binding Image}" ViewportHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                  <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Height="44" LineHeight="22" Margin="4,12,4,0" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
+                  <TextBlock Text="{Binding Caption}" Foreground="{DynamicResource Muted}" FontSize="12" Height="34" LineHeight="17" Margin="4,4,4,4" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding Caption}" />
                 </StackPanel>
               </DataTemplate>
             </ListBox.ItemTemplate>

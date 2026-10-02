@@ -28,7 +28,7 @@ public partial class MainWindow : Window
     int detailGeneration;
     public MainWindow(ModStorage storage,string? preview)
     {
-        this.storage=storage; game=new(storage);sources=new(storage.Root); InitializeComponent();
+        this.storage=storage; game=new(storage);sources=new(storage.Root,preview==null); InitializeComponent();
         InitializeFeatures(preview!=null);RefreshGame(); InitializeUpdateTimer(preview==null);
         Loaded+=async (_,_)=>
         {
@@ -36,11 +36,20 @@ public partial class MainWindow : Window
             await LoadCatalog();
             if(preview!=null)
             {
+                if(App.PreviewMode=="--tiles")
+                {
+                    SearchBox.Text="page";await SearchNow();
+                    if(App.PreviewTileErrors)
+                    {
+                        var sample=catalogRows.Select((x,i)=>i==0?x with {Image=""}:i==1?x with {Image="https://example.com/not-trusted.png"}:i==2?x with {Name=x.Name+" - a very long catalog title that wraps and remains available in the tooltip"}:x).ToList();
+                        DisplayCatalog(sample);CatalogList.SelectedIndex=0;lastDetail=ShowDetail(sample[0]);
+                    }
+                }
                 if(lastDetail!=null) await lastDetail;
                 if(App.PreviewMode=="--library") {SetTab(true);if(LibraryList.Items.Count>0) LibraryList.SelectedIndex=0;}
                 if(App.PreviewMode=="--profiles") ShowProfiles(this,new RoutedEventArgs());
                 if(App.PreviewMode=="--downloads") ShowDownloads(this,new RoutedEventArgs());
-                string review=App.PreviewMode=="--categories"?await ReviewCatalogControls(preview):"";
+                string review=App.PreviewMode=="--categories"?await ReviewCatalogControls(preview):App.PreviewMode=="--tiles"?await ReviewTileControls(preview):"";
                 await Dispatcher.InvokeAsync(()=>{},System.Windows.Threading.DispatcherPriority.ContextIdle);
                 UpdateLayout();
                 var image=new RenderTargetBitmap((int)ActualWidth,(int)ActualHeight,96,96,PixelFormats.Pbgra32); image.Render(this);
@@ -152,10 +161,7 @@ public partial class MainWindow : Window
         {
             try
             {
-                using var response=await CommunityCatalog.GetImage(details.Item.Image,token);
-                using var input=await response.Content.ReadAsStreamAsync(token); using var memory=new MemoryStream();
-                await GameBanana.CopyLimited(input,memory,8*1024*1024,token); memory.Position=0;
-                var image=new BitmapImage(); image.BeginInit(); image.CacheOption=BitmapCacheOption.OnLoad; image.DecodePixelWidth=680; image.StreamSource=memory; image.EndInit(); image.Freeze();if(generation==detailGeneration) PreviewImage.Source=image;
+                var image=await App.Thumbnails!.Get(details.Item.Image,token);if(generation==detailGeneration) PreviewImage.Source=image;
             }
             catch(OperationCanceledException) { throw; }
             catch { /* A preview failure must not disable the mod's files. */ }

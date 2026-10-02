@@ -9,6 +9,7 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 <details><summary>English light theme, library and loadout keys</summary>
 
 ![English light theme](assets/catalog-en-light.png)
+![Compact tile layout](assets/catalog-compact-en.png)
 ![Hero search recognizes page as Paige](assets/category-search-ru.png)
 ![Mod types for the selected hero](assets/mod-type-search-ru.png)
 ![Local mod library](assets/library-en.png)
@@ -18,6 +19,7 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 
 ## Features
 
+- **Cover tiles:** Catalog and Favorites show an adaptive image grid. Covers load near the viewport, with four simultaneous requests, shared memory/disk caching and a fallback when an image is unavailable. Click a tile for file variants and details; arrows move across rows and columns. Compact windows shrink the covers to keep names readable; full names are available in tooltips.
 - **One combined catalog:** GameBanana, Deadlocker, and DeadlockMods work behind the scenes. Origin IDs remove duplicate listings while retaining community-only mods. Hero/type filtering and sorting cover the combined index before pagination.
 - **Hero and mod-type filters:** choose a hero and independently choose skins/models, interface, effects, weapons, music, voices, or another type. Both pickers include search, counts, Down/Enter selection and Escape. Type counts follow the selected or searched hero; Reset clears both filters. Sorting is in the small **Sort** menu.
 - **Hero-aware local search:** `page`, `Paige` and `пейдж` recognize Paige, including mods whose title omits the hero. Russian names and common aliases are supported for the recognized hero roster. A saved disk index, background startup refresh and debounced search keep repeated queries local. Fresh GameBanana rows are merged, then filtered by indexed title, author, hero and type metadata; unrelated full-text hits cannot bypass relevance. Paste a GameBanana URL to open it directly.
@@ -69,6 +71,7 @@ Local data is under `%LOCALAPPDATA%\PocketDeadlock`:
 | `state.json` | Library, profiles, favorites, history, and settings |
 | `mods` | Imported content and retained revisions |
 | `catalog-index` | Saved catalog metadata |
+| `thumbnails` | Decoded cover PNGs, reused after restart; bounded to 128 MiB and 30 days |
 | `backups` | Original `gameinfo.gi` bytes, named by SHA256 |
 | `staging`, `updates` | Temporary work and prepared app-update packages |
 
@@ -121,6 +124,7 @@ Offline tests use synthetic game and catalog fixtures. The default run also exer
 | `ModUpdates.cs` | Chosen-variant matching and library updates |
 | `AppUpdates.cs`, `UpdateKey.cs` | Signed releases, staging, application replacement; public verification key only |
 | `SelfTests.cs` | Synthetic and optional live-service checks |
+| `ThumbnailCache.cs`, `CatalogThumbnail.cs`, `CatalogTilePanel.cs`, `MainWindow.Tiles.cs` | Lazy cover loading, shared cache, adaptive tiles and keyboard navigation |
 
 [PRODUCT.md](PRODUCT.md) records scope. [DESIGN.md](DESIGN.md) and [.impeccable/design.json](.impeccable/design.json) record the native visual system. Archive handling uses [SharpCompress](https://github.com/adamhathcock/sharpcompress) 0.50.4 under MIT; [its license notice](SharpCompress-LICENSE.txt) is included.
 
@@ -143,6 +147,7 @@ PocketDeadlock - менеджер модов Deadlock для Windows x64. Он �
 
 ### Основные возможности
 
+- Каталог и избранное отображаются плиткой с обложками. Число колонок зависит от ширины окна. Картинки загружаются рядом с видимой областью и сохраняются в кеше; недоступная обложка не мешает выбрать мод. Стрелки перемещают выбор по плиткам. В маленьком окне картинки уменьшаются, чтобы названия оставались видимыми; полное название есть в подсказке.
 - Один общий каталог: GameBanana, Deadlocker и DeadlockMods работают внутри программы. Совпадающие записи объединяются по идентификатору исходного мода; переключать базы не нужно. Сохраняются моды, звуки и уникальные записи сообществ.
 - **Все герои** и **Все типы модов** - отдельные фильтры с поиском. Можно выбрать Пейдж (Paige), затем скины, интерфейс или другой тип. Стрелка вниз и Enter выбирают пункт, Escape закрывает список, **Сбросить** очищает оба фильтра. Счетчики типов учитывают выбранного или найденного героя. Сортировка доступна в меню **Порядок**.
 - Поиск `page`, `Paige` и `пейдж` находит одного героя, включая моды без его имени в названии. Поддерживаются русские имена и распространенные варианты написания героев из списка. Индекс сохраняется на диске, обновляется в фоне и отвечает локально; новые записи GameBanana проходят ту же проверку соответствия. Фильтры и сортировка работают до деления на страницы.
@@ -178,4 +183,3 @@ PocketDeadlock - менеджер модов Deadlock для Windows x64. Он �
 Редактора прицела, сборки VPK, плагинов и облачных профилей нет. Программа не связана с Valve и владельцами каталогов. Гарантии приема любой сборки антивирусом нет.
 
 Для сборки нужен **.NET SDK 10 на Windows**. Команды приведены в [Build and test](#build-and-test). `--self-test` использует отдельную искусственную папку игры; `--offline` отключает живые сетевые проверки. Результаты конкретной проверки находятся в [Проверка.md](Проверка.md).
-

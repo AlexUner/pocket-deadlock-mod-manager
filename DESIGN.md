@@ -169,7 +169,7 @@ The detail description has a fixed line height (21px). Current local exceptions 
 
 The main window starts at 1380 x 900 device-independent units and has a minimum size of 1100 x 760. WPF units map to CSS pixels at 96 DPI; Windows scales the window at higher DPI.
 
-The outer inset is `window`. A header contains the product name and settings/game/launch actions. A full-width status band identifies the game and index state. The workspace has a flexible list area, a `pane` gap, and a fixed detail width (380 units). Detail content scrolls vertically with `pane` padding. There is no mobile breakpoint or automatic single-column collapse.
+The outer inset is `window`. A header contains the product name and settings/game/launch actions. A full-width status band identifies the game and index state. The workspace has a flexible catalog area, a `pane` gap, and a fixed detail width (380 units). Catalog and Favorites use cover tiles; the library uses native rows for checkbox selection and reordering. Detail content scrolls vertically with `pane` padding. There is no mobile breakpoint or automatic single-column collapse.
 
 Navigation precedes search, filters, the scrollable result list, and pagination or apply controls. Navigation and action groups use wrapping panels. Feature pages reuse the list area and detail context. The footer holds progress, a wrapping status message, cancellation, and a staged-update action.
 
@@ -205,7 +205,9 @@ Navigation is a wrapping row of native buttons: Catalog, Library, Favorites, Dow
 
 The catalog combines all providers internally and offers no provider switch. Below the main search, two 250-unit buttons independently select hero and mod type. Each opens a 360-unit native popup with search, matching choices, counts, an explicit empty state and an All reset. Hero names use a Russian label plus canonical English name in Russian mode. Hero aliases work in both the picker and main search. Type choices and counts follow the selected or searched hero. Down/Enter selects; Escape closes. A Reset button clears both filters and wraps at minimum width. Sorting stays in a small secondary menu at the right. Matching listings share one row; content kinds and distinct origin identities remain separate.
 
-A row places a semibold name above muted category/author or library metadata. Rows use `row` padding and `related` vertical gaps. Selection changes fill and boundary; hover changes the boundary; keyboard focus uses ink. Library rows add an enabled checkbox. Drag reordering and Higher/Lower change priority without changing row geometry.
+Catalog tiles place a real cover above a two-line semibold name and two-line muted hero/type/author caption. Full text remains in tooltips. The panel uses a 220-unit minimum tile width and 12-unit gaps, distributing the available width equally into whole columns (three at the default window, two at minimum width). Images normally occupy a 16:9 frame; short viewports reduce image height, containing the full image when the frame becomes shallow. Tile padding is 8 units, with 12 units between image and name. Covers load only near the viewport; missing/loading/unavailable states use a muted native photo glyph and direct bilingual text. Selection changes fill and boundary; hover changes the boundary; keyboard focus uses ink. Arrow navigation follows rows and columns, and selection opens the detail pane.
+
+Library rows retain a semibold name, muted metadata, `row` padding, and `related` gaps. Their enabled checkbox, drag reordering, and Higher/Lower preserve the existing native workflow.
 
 ### Status and Details
 
@@ -231,5 +233,4 @@ Use native file/folder selection and owner windows for settings and VPK choices.
 - **Don't** replace native behaviors with unfamiliar web affordances.
 - **Don't** introduce shadows, glass, decorative motion, display fonts, or large pill shapes.
 - **Don't** invent mobile layouts, animations, continuous OS-theme synchronization, or richer navigation states than the code implements.
-
 

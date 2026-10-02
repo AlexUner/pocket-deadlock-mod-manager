@@ -26,6 +26,7 @@ Manage the supported VPK workflow in one desktop tool: discover, download or imp
 
 ### Supported workflows
 
+- Browse Catalog and Favorites as adaptive cover tiles. Images load near the viewport with four concurrent requests; shared memory and decoded PNG caching avoid duplicate tile/detail requests and support subsequent offline viewing. Missing images leave a selectable tile. Arrow keys follow tile rows and columns; compact-height windows reduce cover height to retain names. Full names and captions are available in tooltips.
 - Browse mods and sounds in one catalog; search names, authors, recognized heroes and mod types; open a GameBanana URL. Hero aliases recognize page/Paige/пейдж and common Russian names. Separate searchable hero/type pickers support keyboard selection and reset. Mod-type counts follow the selected or searched hero. Sorting by update time, name, downloads or likes is a secondary menu.
 - Keep local favorites. Queue downloads with two active transfers, cancellation, and a saved operation history.
 - Import VPK, ZIP, RAR, and 7Z using a file dialog or drag and drop. Choose VPK files inside archives. Scan existing `game/citadel/addons` and copy selected VPK files into the library.
@@ -66,4 +67,3 @@ The source includes the WPF interface, three catalog adapters, local persistence
 ## Accessibility & Inclusion
 
 Preserve readable text in both themes, visible keyboard focus, native tab navigation, automation names for important controls, and search with Ctrl+F. Controls and status messages must remain understandable in Russian and English. System defaults and saved preferences must remain predictable.
-

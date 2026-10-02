@@ -38,6 +38,9 @@ PocketDeadlock · Менеджер модов|PocketDeadlock · Mod Manager
 Профили|Profiles
 Найти|Search
 Все категории|All categories
+Нет обложки|No cover
+Загружаем обложку…|Loading cover…
+Обложка недоступна|Cover unavailable
 Все герои|All heroes
 Все типы модов|All mod types
 Выбрать героя|Choose a hero

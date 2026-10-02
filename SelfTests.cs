@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace PocketDeadlock;
 
 // This runner accepts an explicit scratch directory and never applies to the detected real game.
-internal static class SelfTests
+internal static partial class SelfTests
 {
     public static async Task Run(string target,bool live=true)
     {
@@ -109,6 +109,7 @@ internal static class SelfTests
         instant=await reopened.Query("Mod","",1,"UI",0,CancellationToken.None);
         Assert(instant.Total==1 && instant.Items[0].Id==2,"catalog category filter uses the whole index");
         await UnifiedTests(run,Assert);
+        await ThumbnailTests(run,Assert);
         if(live)
         {
         var provider=new GameBanana();

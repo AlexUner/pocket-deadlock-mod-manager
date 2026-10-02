@@ -6,6 +6,8 @@ namespace PocketDeadlock;
 public partial class App : Application
 {
     internal static string PreviewMode="";
+    internal static bool PreviewTileErrors;
+    internal static ThumbnailCache? Thumbnails;
     Mutex? instance;
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -40,7 +42,9 @@ public partial class App : Application
             string root=preview?Path.Combine(Path.GetDirectoryName(Path.GetFullPath(e.Args[1]))!,"preview-data")
                 :Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"PocketDeadlock");
             var storage=new ModStorage(root);
-            if(preview) {if(e.Args.Contains("--en")) storage.State.Language="en";if(e.Args.Contains("--ru")) storage.State.Language="ru";if(e.Args.Contains("--light")) storage.State.Theme="light";if(e.Args.Contains("--dark")) storage.State.Theme="dark";PreviewMode=e.Args.FirstOrDefault(x=>x is "--library" or "--profiles" or "--downloads" or "--categories")??"";}
+            Thumbnails=new ThumbnailCache(Path.Combine(root,"thumbnails"));
+            if(preview) {if(e.Args.Contains("--en")) storage.State.Language="en";if(e.Args.Contains("--ru")) storage.State.Language="ru";if(e.Args.Contains("--light")) storage.State.Theme="light";if(e.Args.Contains("--dark")) storage.State.Theme="dark";PreviewMode=e.Args.FirstOrDefault(x=>x is "--library" or "--profiles" or "--downloads" or "--categories" or "--tiles")??"";}
+            PreviewTileErrors=preview && e.Args.Contains("--tile-errors");
             L.Set(storage.State.Language);L.Theme(storage.State.Theme);
             if(!GameInstall.Valid(storage.State.GamePath)) { storage.State.GamePath=GameInstall.Detect(); storage.Save(); }
             var window=new MainWindow(storage,preview?Path.GetFullPath(e.Args[1]):null);

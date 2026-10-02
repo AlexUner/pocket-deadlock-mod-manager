@@ -145,12 +145,12 @@
       "css": ".ds-category { width:360px; padding:12px; border:1px solid #485A4E; border-radius:4px; background:#1E2623; font:14px \"Segoe UI\",sans-serif; } .ds-select, .ds-input { box-sizing:border-box; display:block; width:100%; min-height:40px; margin-bottom:8px; padding:10px; border:1px solid #485A4E; border-radius:4px; color:#F0EFE6; background:#101613; font:inherit; text-align:left; } .ds-input::placeholder {color:#B8C3B9;} .ds-select:focus-visible, .ds-input:focus {outline:1px solid #F0EFE6;}"
     },
     {
-      "name": "Catalog Row",
+      "name": "Catalog Cover Tile",
       "kind": "custom",
       "refersTo": "catalog-row",
-      "description": "A name and metadata row. Selection, hover, and keyboard focus reproduce the current WPF boundary vocabulary.",
-      "html": "<button class=\"ds-row\" aria-pressed=\"false\"><span class=\"ds-row-title\">Mod name</span><span class=\"ds-row-meta\">Category / Author</span></button>",
-      "css": ".ds-row { box-sizing: border-box; display: block; width: 100%; padding: 12px; margin-bottom: 8px; border: 1px solid #485A4E; border-radius: 4px; background: #1E2623; color: #F0EFE6; text-align: left; font-family: 'Segoe UI', sans-serif; cursor: pointer; } .ds-row-title { display: block; font-size: 16px; font-weight: 600; } .ds-row-meta { display: block; margin-top: 6px; color: #B8C3B9; font-size: 12px; } .ds-row[aria-pressed='true'] { background: #303D2D; border-color: #D5E998; } .ds-row:hover { border-color: #809070; } .ds-row:focus-visible { border-color: #F0EFE6; outline: none; }"
+      "description": "Catalog and Favorites use an adaptive cover grid, a two-line title and caption, shared selection/focus boundaries, lazy loading and bilingual missing-image states. The native library retains sortable rows. Compact viewports reduce cover height to keep names readable.",
+      "html": "<button class=\"ds-tile\" aria-pressed=\"false\"><div class=\"ds-cover\">Cover image</div><span class=\"ds-tile-title\">Mod name</span><span class=\"ds-tile-meta\">Mod type / Hero / Author</span></button>",
+      "css": ".ds-tile {box-sizing:border-box; width:100%; min-width:220px; padding:8px; border:1px solid #485A4E; border-radius:4px; background:#1E2623; color:#F0EFE6; text-align:left; font-family:\"Segoe UI\",sans-serif;} .ds-cover {aspect-ratio:16/9; border-radius:3px; background:#101613; color:#B8C3B9; display:grid; place-items:center;} .ds-tile-title {display:block; height:44px; margin:12px 4px 0; font-size:16px; line-height:22px; font-weight:600; overflow:hidden;} .ds-tile-meta {display:block; height:34px; margin:4px; color:#B8C3B9; font-size:12px; line-height:17px; overflow:hidden;} .ds-tile[aria-pressed=\"true\"] {background:#303D2D; border-color:#D5E998;} .ds-tile:hover {border-color:#809070;} .ds-tile:focus-visible {border-color:#F0EFE6; outline:none;}"
     },
     {
       "name": "Game Status Band",
