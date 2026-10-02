@@ -301,6 +301,7 @@ VPK был изменен после установки: |VPK was modified after
 Копия мода в игре изменена: |Game mod copy has been modified: 
 Обрезанный VPK.|Truncated VPK.
 VPK не содержит ресурсов.|VPK contains no resources.
+VPK не содержит игровых ресурсов.|VPK contains no game resources.
 Папка игры не найдена.|Game folder not found.
 Выберите папку Deadlock с установленной игрой.|Choose the installed Deadlock folder.
 Поврежден блок PocketDeadlock. Восстановите gameinfo.gi из резервной копии.|PocketDeadlock block is corrupted. Restore gameinfo.gi from a backup.

@@ -86,6 +86,7 @@ internal static partial class SelfTests
         game.Disable(); Assert(File.ReadAllBytes(GameInstall.ConfigPath(root)).SequenceEqual(bom),"full apply-disable roundtrip preserves original BOM and CRLF");
         game.Disable(); Assert(!game.IsApplied(),"disable is idempotent");
         Assert(!GameBanana.TrustedUrl("https://gamebanana.com.evil.example/download") && !GameBanana.TrustedUrl("http://gamebanana.com/dl/1") && !GameBanana.TrustedUrl("https://gamebanana.com:8443/dl/1"),"reject untrusted download hosts and insecure URLs");
+        ConflictDocumentationTests(run,Assert,Fails);
         await UpdateTests(run,Assert,Fails);
         L.Set("en");Assert(L.T("Игра запущена - изменения ожидают применения. Можно скачивать и выбирать моды.")=="Game is running. Changes are pending; downloading and choosing mods is available.","English running-game protection label is fully localized");
         L.Set("ru");Assert(L.T("Настройки")=="Настройки","Russian interface preserves native text");

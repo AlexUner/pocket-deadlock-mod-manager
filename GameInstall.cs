@@ -90,7 +90,7 @@ public sealed class GameInstall
                 if(!Regex.IsMatch(mod.Files[i],@"^pak[0-9]{2}_dir\.vpk$")) throw new IOException("Недопустимое имя VPK.");
                 var file=Path.Combine(storage.ModFolder(mod),mod.Files[i]);
                 if(ModStorage.Hash(file)!=mod.Hashes[i]) throw new IOException("VPK был изменен после установки: "+mod.Name);
-                foreach(var resource in Vpk.ReadResources(file))
+                foreach(var resource in Vpk.ReadGameResources(file))
                 {
                     if(resources.TryGetValue(resource,out var other) && !mod.AllowOverrides) throw new IOException($"Конфликт: «{other}» и «{mod.Name}» заменяют {resource}. Поставьте нужный мод выше и разрешите ему перекрывать ресурсы, либо отключите один мод.");
                     resources[resource]=mod.Name;
