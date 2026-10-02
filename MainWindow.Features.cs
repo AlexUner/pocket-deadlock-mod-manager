@@ -29,13 +29,12 @@ public partial class MainWindow
     string? draggedId;
     Point dragStart;
     int ActiveTransfers=>transfers.Count(x=>!x.Finished);
-    string SelectedCategory=>CategoryFilter.SelectedIndex>0?CategoryFilter.SelectedItem as string??"":"";
+    string SelectedCategory=>selectedCategory;
     DispatcherTimer? searchDelay;
     string featureId="";
     void InitializeFeatures(bool preview)
     {
-        settingFilters=true; SortBox.ItemsSource=new[]{L.T("Последние обновления"),L.T("Название"),L.T("Загрузки"),L.T("Оценки")};SortBox.SelectedIndex=0;
-        CategoryFilter.ItemsSource=new[]{L.T("Все категории")};CategoryFilter.SelectedIndex=0;settingFilters=false;
+        UpdateCategoryOptions();
         LibraryList.PreviewMouseLeftButtonDown+=(_,e)=> {dragStart=e.GetPosition(LibraryList);draggedId=(ItemsControl.ContainerFromElement(LibraryList,e.OriginalSource as DependencyObject) as ListBoxItem)?.DataContext is LibraryMod mod?mod.Id:null;};
         LibraryList.PreviewMouseMove+=(_,e)=>
         {
@@ -54,19 +53,13 @@ public partial class MainWindow
     }
     void DisplayCatalog(List<CatalogItem> rows)
     {
-        catalogRows=rows; settingFilters=true;string previous=SelectedCategory;
-        var categories=favoritesView?rows.Select(x=>x.Category).Distinct().Order().ToList():sources.Categories((string)SourcesBox.SelectedItem,activeKind);
-        CategoryFilter.ItemsSource=new[]{L.T("Все категории")}.Concat(categories);CategoryFilter.SelectedItem=previous!="" && categories.Contains(previous)?previous:L.T("Все категории");
-        settingFilters=false;CatalogList.ItemsSource=rows;
+        catalogRows=rows;settingFilters=true;UpdateCategoryOptions();CatalogList.ItemsSource=rows;settingFilters=false;
     }
-    async void FilterCatalog(object sender,SelectionChangedEventArgs e)
+    async Task ApplyCatalogFilter()
     {
-        if(settingFilters || CategoryFilter==null || SortBox==null || CatalogList==null) return;
         if(!favoritesView) {if(IsLoaded && !busy) {page=1;await LoadCatalog();}return;}
-        IEnumerable<CatalogItem> rows=catalogRows;
-        if(CategoryFilter.SelectedIndex>0 && CategoryFilter.SelectedItem is string category) rows=rows.Where(x=>x.Category==category);
-        rows=SortBox.SelectedIndex switch {1=>rows.OrderBy(x=>x.Name,StringComparer.CurrentCultureIgnoreCase),2=>rows.OrderByDescending(x=>x.Downloads),3=>rows.OrderByDescending(x=>x.Likes),_=>rows.OrderByDescending(x=>x.Modified)};
-        CatalogList.ItemsSource=rows.ToList();EmptyLabel.Visibility=CatalogList.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
+        var result=UnifiedCatalog.Query(UnifiedCatalog.Merge(catalogRows),"","",1,SelectedCategory,sortIndex,perPage:int.MaxValue);
+        CatalogList.ItemsSource=result.Items;EmptyLabel.Visibility=result.Total==0?Visibility.Visible:Visibility.Collapsed;
     }
     void FilterLibrary(object sender,TextChangedEventArgs e) {if(library) RefreshLibrary();}
     void FeaturePage(string title,string description)
@@ -230,18 +223,17 @@ public partial class MainWindow
     {
         if(!IsLoaded || busy || library || favoritesView || FeatureScreen.Visibility==Visibility.Visible) return;
         var selected=CatalogList.SelectedItem as CatalogItem;
-        var result=await sources.Query((string)SourcesBox.SelectedItem,activeKind,activeSearch,page,SelectedCategory,SortBox.SelectedIndex,CancellationToken.None);
+        var result=await sources.QueryUnified(activeKind,activeSearch,page,SelectedCategory,sortIndex,CancellationToken.None);
         total=result.Total;perPage=result.PerPage;DisplayCatalog(result.Items);settingFilters=true;
         PageLabel.Text=L.T($"Страница {page} из {Math.Max(1,(int)Math.Ceiling(total/(double)perPage))} · Всего: {total}");
         PreviousButton.IsEnabled=page>1;NextButton.IsEnabled=page*perPage<total;
-        if(selected!=null) CatalogList.SelectedItem=result.Items.FirstOrDefault(x=>x.Id==selected.Id && x.Kind==selected.Kind && x.Key==selected.Key);
+        if(selected!=null) CatalogList.SelectedItem=result.Items.FirstOrDefault(x=>UnifiedCatalog.Identity(x)==UnifiedCatalog.Identity(selected));
         settingFilters=false;
         EmptyLabel.Visibility=result.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
+        if(result.Total==0) EmptyLabel.Text=sources.IsRefreshing?L.T("Каталог загружается в фоне. Результаты появятся здесь."):L.T("Ничего не найдено. Попробуй другое название или страницу.");
     }
     void ReloadLocale()
     {
-        settingFilters=true;int sort=SortBox.SelectedIndex;
-        SortBox.ItemsSource=new[]{L.T("Последние обновления"),L.T("Название"),L.T("Загрузки"),L.T("Оценки")};SortBox.SelectedIndex=sort;settingFilters=false;
         DisplayCatalog(catalogRows);RefreshGame();if(library) RefreshLibrary();
         if(FeatureScreen.Visibility==Visibility.Visible) {if(featureId=="profiles") ShowProfiles(this,new RoutedEventArgs());else ShowDownloads(this,new RoutedEventArgs());}
         else if(library && LibraryList.SelectedItem!=null) SelectedLibraryMod(this,null!);

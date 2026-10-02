@@ -336,6 +336,21 @@ gameinfo.gi является ссылкой.|gameinfo.gi is a link.
 Проверка обновлений будет доступна после завершения загрузок.|Update check will be available when downloads finish.
 Скопировать ключ текущего набора|Copy current loadout key
 Текущий набор|Current loadout
+Выбрать категорию|Choose a category
+Найти категорию|Find a category
+Поиск по категориям|Search categories
+Категории|Categories
+Категории не найдены|No matching categories
+Порядок|Sort
+Порядок модов в каталоге|Catalog sorting
+Ищи по названию или герою. Все источники уже объединены.|Search by name or hero. All sources are already combined.
+Ищи по названию, герою или категории.|Search by name, hero or category.
+Каталог загружается в фоне. Результаты появятся здесь.|The catalog is loading in the background. Results will appear here.
+Обновляем каталог в фоне…|Refreshing the catalog in the background…
+Каталог обновлен. Поиск использует сохраненный индекс.|Catalog refreshed. Search uses the saved index.
+Часть каталога пока недоступна. Используем сохраненные записи.|Part of the catalog is temporarily unavailable. Using saved entries.
+Посмотреть варианты|View variants
+Повторите позже.|Try again later.
 Выбери моды и их порядок. Изменения применятся после выхода из игры.|Choose mods and their order. Apply changes after closing the game.
 """;
 }

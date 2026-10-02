@@ -89,20 +89,6 @@ public partial class MainWindow
         updateTimer?.Stop();presenceTimer?.Stop();searchDelay?.Stop();
     }
     void InstallAppUpdate(object sender,RoutedEventArgs e) { if(busy) return; restartForUpdate=true; Close(); }
-    async void SourceChanged(object sender,SelectionChangedEventArgs e)
-    {
-        if(SourcesBox.SelectedItem is not string name) return;
-        catalog=sources.Get(name); storage.State.LastCatalog=name;
-        settingFilters=true;
-        ((ComboBoxItem)KindBox.Items[1]).IsEnabled=name!="Deadlocker";
-        if(name=="Deadlocker" && KindBox.SelectedIndex==1) {KindBox.SelectedIndex=0;activeKind="Mod";}
-        settingFilters=false;
-        if(IsLoaded && !busy)
-        {
-            try { storage.Save(); } catch(Exception ex) { StatusLabel.Text=L.T(ex.Message); return; }
-            page=1; await LoadCatalog();
-        }
-    }
     void LibraryOptionChanged(object sender,RoutedEventArgs e)
     {
         if(selectedLocal==null) return;

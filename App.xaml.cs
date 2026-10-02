@@ -40,7 +40,7 @@ public partial class App : Application
             string root=preview?Path.Combine(Path.GetDirectoryName(Path.GetFullPath(e.Args[1]))!,"preview-data")
                 :Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"PocketDeadlock");
             var storage=new ModStorage(root);
-            if(preview) {if(e.Args.Contains("--en")) storage.State.Language="en";if(e.Args.Contains("--ru")) storage.State.Language="ru";if(e.Args.Contains("--light")) storage.State.Theme="light";if(e.Args.Contains("--dark")) storage.State.Theme="dark";PreviewMode=e.Args.FirstOrDefault(x=>x is "--library" or "--profiles" or "--downloads")??"";}
+            if(preview) {if(e.Args.Contains("--en")) storage.State.Language="en";if(e.Args.Contains("--ru")) storage.State.Language="ru";if(e.Args.Contains("--light")) storage.State.Theme="light";if(e.Args.Contains("--dark")) storage.State.Theme="dark";PreviewMode=e.Args.FirstOrDefault(x=>x is "--library" or "--profiles" or "--downloads" or "--categories")??"";}
             L.Set(storage.State.Language);L.Theme(storage.State.Theme);
             if(!GameInstall.Valid(storage.State.GamePath)) { storage.State.GamePath=GameInstall.Detect(); storage.Save(); }
             var window=new MainWindow(storage,preview?Path.GetFullPath(e.Args[1]):null);

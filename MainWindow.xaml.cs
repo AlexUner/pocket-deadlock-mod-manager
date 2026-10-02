@@ -17,7 +17,6 @@ public partial class MainWindow : Window
     readonly ModStorage storage;
     readonly GameInstall game;
     readonly HybridCatalogs sources;
-    IModCatalog catalog;
     CancellationTokenSource? operation;
     bool busy,library;
     int page=1,total,perPage=24;
@@ -29,8 +28,7 @@ public partial class MainWindow : Window
     int detailGeneration;
     public MainWindow(ModStorage storage,string? preview)
     {
-        this.storage=storage; game=new(storage);sources=new(storage.Root); catalog=sources.Get(storage.State.LastCatalog); InitializeComponent();
-        SourcesBox.ItemsSource=sources.Sources.Keys; SourcesBox.SelectedItem=sources.Sources.ContainsKey(storage.State.LastCatalog)?storage.State.LastCatalog:"GameBanana";
+        this.storage=storage; game=new(storage);sources=new(storage.Root); InitializeComponent();
         InitializeFeatures(preview!=null);RefreshGame(); InitializeUpdateTimer(preview==null);
         Loaded+=async (_,_)=>
         {
@@ -42,12 +40,13 @@ public partial class MainWindow : Window
                 if(App.PreviewMode=="--library") {SetTab(true);if(LibraryList.Items.Count>0) LibraryList.SelectedIndex=0;}
                 if(App.PreviewMode=="--profiles") ShowProfiles(this,new RoutedEventArgs());
                 if(App.PreviewMode=="--downloads") ShowDownloads(this,new RoutedEventArgs());
+                string review=App.PreviewMode=="--categories"?await ReviewCatalogControls(preview):"";
                 await Dispatcher.InvokeAsync(()=>{},System.Windows.Threading.DispatcherPriority.ContextIdle);
                 UpdateLayout();
                 var image=new RenderTargetBitmap((int)ActualWidth,(int)ActualHeight,96,96,PixelFormats.Pbgra32); image.Render(this);
                 var png=new PngBitmapEncoder(); png.Frames.Add(BitmapFrame.Create(image));
                 using(var file=File.Create(preview)) png.Save(file);
-                File.WriteAllText(preview+".txt",$"Catalog rows: {CatalogList.Items.Count}\nDetail: {DetailTitle.Text}\nStatus: {StatusLabel.Text}\n");
+                File.WriteAllText(preview+".txt",$"Catalog rows: {CatalogList.Items.Count}\nDetail: {DetailTitle.Text}\nStatus: {StatusLabel.Text}\n"+review);
                 Close();
             }
             else await ScheduledUpdates();
@@ -105,16 +104,17 @@ public partial class MainWindow : Window
         EmptyLabel.Visibility=storage.State.Mods.Count==0?Visibility.Visible:Visibility.Collapsed;
         RefreshGame();
     }
-    async Task LoadCatalog()=>await Run(L.T("Загружаем ")+SourcesBox.SelectedItem+"…",async token=>
+    async Task LoadCatalog()=>await Run(L.T("Загружаем каталог…"),async token=>
     {
         SetTab(false);
-        var result=await sources.Query((string)SourcesBox.SelectedItem,activeKind,activeSearch,page,SelectedCategory,SortBox.SelectedIndex,token);
+        var result=await sources.QueryUnified(activeKind,activeSearch,page,SelectedCategory,sortIndex,token);
         DisplayCatalog(result.Items); total=result.Total; perPage=result.PerPage;
         PageLabel.Text=L.T($"Страница {page} из {Math.Max(1,(int)Math.Ceiling(total/(double)perPage))} · Всего: {total}");
         PreviousButton.IsEnabled=page>1; NextButton.IsEnabled=page*perPage<total;
         EmptyLabel.Text=L.T("Ничего не найдено. Попробуй другое название или страницу.");
         EmptyLabel.Visibility=result.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
-        ClearDetail(); StatusLabel.Text=L.T($"{SourcesBox.SelectedItem}: загружено {result.Items.Count} модов. Поиск принимает название или ссылку.");
+        ClearDetail();StatusLabel.Text=L.T("Ищи по названию, герою или категории.");
+        if(result.Total==0 && sources.IsRefreshing) EmptyLabel.Text=L.T("Каталог загружается в фоне. Результаты появятся здесь.");
         if(result.Items.Count>0) { CatalogList.SelectedIndex=0;lastDetail=ShowDetail(result.Items[0]); }
     });
     async Task ShowDetail(CatalogItem item)
@@ -137,7 +137,7 @@ public partial class MainWindow : Window
         ClearDetail();int generation=detailGeneration;
         var fetched=item==null?await new GameBanana().Details(kind,id,token):await sources.Get(item.Provider).Details(item,token);
         if(generation!=detailGeneration) return;details=fetched;
-        DetailTitle.Text=details.Item.Name; DetailMeta.Text=details.Item.Provider+" · "+details.Item.Caption; DetailText.Text=details.Description;
+        DetailTitle.Text=details.Item.Name; DetailMeta.Text=details.Item.Caption; DetailText.Text=details.Description;
         RequirementsLabel.Text=details.Requirements.Length>0?L.T("Требования автора: ")+details.Requirements:"";
         sourceUrl=details.Item.Url; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
         DetailMeta.Text+=L.T($"\nЗагрузок: {details.Item.Downloads} · Оценок: {details.Item.Likes}");RefreshFavorite();
@@ -175,7 +175,7 @@ public partial class MainWindow : Window
         DetailMeta.Text=L.T("Локальная библиотека · ")+mod.Added;
         DetailText.Text=L.T("VPK в наборе: ")+mod.Files.Count+L.T(".\nВариант: ")+(mod.VariantName==""?L.T("Определится при проверке обновлений"):mod.VariantName)+L.T("\nПредыдущих версий: ")+mod.Revisions.Count+"\n\n"+mod.UpdateStatus;
         sourceUrl=mod.SourceUrl; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
-        DownloadButton.Content=L.T("Посмотреть версии на GameBanana"); DownloadButton.IsEnabled=mod.RemoteId>0;
+        DownloadButton.Content=L.T("Посмотреть варианты"); DownloadButton.IsEnabled=mod.RemoteId>0;
     }
     async void Search(object sender,RoutedEventArgs e)=>await SearchNow();
     async void SearchKey(object sender,KeyEventArgs e) { if(e.Key==Key.Enter) await SearchNow(); }
@@ -192,7 +192,7 @@ public partial class MainWindow : Window
         }
         activeSearch=input; activeKind=KindBox.SelectedIndex==1?"Sound":"Mod"; page=1; await LoadCatalog();
     }
-    async void KindChanged(object sender,SelectionChangedEventArgs e) { if(IsLoaded && !busy && !settingFilters) { activeKind=KindBox.SelectedIndex==1?"Sound":"Mod"; page=1; await LoadCatalog(); } }
+    async void KindChanged(object sender,SelectionChangedEventArgs e) { if(IsLoaded && !busy && !settingFilters) { activeKind=KindBox.SelectedIndex==1?"Sound":"Mod";selectedCategory="";page=1;await LoadCatalog(); } }
     async void Previous(object sender,RoutedEventArgs e) { if(page>1) { page--; await LoadCatalog(); } }
     async void Next(object sender,RoutedEventArgs e) { page++; await LoadCatalog(); }
     async void ShowCatalog(object sender,RoutedEventArgs e) {SetTab(false);if(CatalogList.SelectedItem is CatalogItem item) {lastDetail=ShowDetail(item);await lastDetail;}}

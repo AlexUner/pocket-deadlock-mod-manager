@@ -108,6 +108,7 @@ internal static class SelfTests
         Assert(instant.Total==2 && instant.Items[0].Id==2,"disk catalog index survives restart and sorts across the collection");
         instant=await reopened.Query("Mod","",1,"UI",0,CancellationToken.None);
         Assert(instant.Total==1 && instant.Items[0].Id==2,"catalog category filter uses the whole index");
+        await UnifiedTests(run,Assert);
         if(live)
         {
         var provider=new GameBanana();
@@ -143,6 +144,44 @@ internal static class SelfTests
         }
         var report=$"{results.Count} checks passed.\nTest directory: {run}\nReal game was not modified.\n\n"+string.Join("\n",results);
         File.WriteAllText(Path.Combine(target,"test-results.txt"),report);
+    }
+    static async Task UnifiedTests(string run,Action<bool,string> assert)
+    {
+        var official=new CatalogItem(10,"Mod","Health bars","Author","UI / Haze","","https://gamebanana.com/mods/10",10,Downloads:10);
+        var alias=official with {Name="Community alias",Provider="DeadlockMods",Key="community",Category="UI · Haze",Downloads=100};
+        var locker=official with {Provider="Deadlocker",Key="same"};
+        var sound=official with {Kind="Sound",Name="Health sound",Category="Audio"};
+        var solo=new CatalogItem(0,"Mod","Community exclusive","Author","UI","","https://deadlocker.net/mod/solo",10,"Deadlocker","solo");
+        var other=solo with {Provider="DeadlockMods",Url="https://deadlockmods.com/mod/solo"};
+        var different=official with {Id=11};
+        var merged=UnifiedCatalog.Merge(new[]{alias,locker,official,sound,solo,other,different});
+        assert(merged.Count==5,"unified catalog removes cross-provider duplicates by origin identity");
+        var item=merged.Single(x=>x.Item.Id==10 && x.Item.Kind=="Mod").Item;
+        assert(item.Name==official.Name && item.Provider=="GameBanana" && item.Downloads==100,"unified entry retains authoritative title and available popularity metadata");
+        assert(UnifiedCatalog.Query(merged,"Mod","Community alias",1,"",0).Items.Single().Id==10,"search matches alternative community titles without adding duplicates");
+        assert(UnifiedCatalog.Query(merged,"Mod","",1,"",0).Total==4 && UnifiedCatalog.Query(merged,"Sound","",1,"",0).Total==1,"unified catalog preserves sounds and unrelated same-name mods");
+        assert(UnifiedCatalog.Query(merged,"Mod","",1,"ui / haze",0).Total==2 && UnifiedCatalog.Categories(merged,"Mod").Count==2,"equivalent category separators normalize and filtering is case-insensitive");
+        assert(UnifiedCatalog.Category("Haze · Haze / haze")=="Haze","category labels remove repeated adjacent hero names");
+        assert(UnifiedCatalog.Query(merged,"Mod","missing",1,"",0,new(){UnifiedCatalog.Identity(official)}).Total==1,"fresh remote matches enrich the combined result without duplicates");
+        assert(UnifiedCatalog.Query(merged,"","",1,"",0).Total==5,"favorites filtering can retain both mods and sounds");
+        var many=Enumerable.Range(100,50).Select(id=>official with {Id=id,Name="Paged "+id,Category="UI"}).ToList();
+        var paged=UnifiedCatalog.Query(UnifiedCatalog.Merge(many.Concat(many.Select(x=>x with {Provider="Deadlocker"}))),"Mod","",2,"UI",1);
+        assert(paged.Total==50 && paged.Items.Count==24 && paged.Items[0].Id==124,"unified filtering, deduplication and sorting precede pagination");
+        var all=new HybridCatalogs(Path.Combine(run,"unified-data"),false);
+        ((HybridCatalog)all.Sources["GameBanana"]).Merge([official]);
+        ((HybridCatalog)all.Sources["DeadlockMods"]).Merge([alias,sound]);
+        ((HybridCatalog)all.Sources["Deadlocker"]).Merge([locker,solo]);
+        var page=await all.QueryUnified("Mod","Community alias",1,"",0,CancellationToken.None);
+        assert(page.Total==1 && page.Items[0].Id==10,"combined disk indexes answer one search across providers");
+        ((HybridCatalog)all.Sources["Deadlocker"]).Merge([different]);
+        page=await all.QueryUnified("Mod","",1,"",0,CancellationToken.None);
+        assert(page.Total==3,"background index changes invalidate the combined cache");
+        var restored=new HybridCatalogs(Path.Combine(run,"unified-data"),false);
+        page=await restored.QueryUnified("Sound","",1,"",0,CancellationToken.None);
+        assert(page.Total==1 && page.Items[0].Id==10,"combined catalog survives restart and retains sounds");
+        var cold=new HybridCatalogs(Path.Combine(run,"cold-unified-data"),false);
+        page=await cold.QueryUnified("Mod","Haze",1,"",0,CancellationToken.None);
+        assert(page.Total==0,"empty combined index returns immediately while startup refresh can populate it");
     }
     static async Task UpdateTests(string run,Action<bool,string> assert,Action<Action,string> fails)
     {

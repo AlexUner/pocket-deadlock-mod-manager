@@ -45,7 +45,7 @@ public sealed class CommunityCatalog(string source) : IModCatalog
         request.Headers.UserAgent.ParseAdd("PocketDeadlock/0.2");
         if(bearer!=null) request.Headers.Authorization=new("Bearer",bearer);
         using var response=await Http.SendAsync(request,HttpCompletionOption.ResponseHeadersRead,token);
-        if(!response.IsSuccessStatusCode) throw new IOException($"{source}: HTTP {(int)response.StatusCode}. Повторите позже или выберите GameBanana.");
+        if(!response.IsSuccessStatusCode) throw new IOException($"{source}: HTTP {(int)response.StatusCode}. Повторите позже.");
         using var input=await response.Content.ReadAsStreamAsync(token); using var output=new MemoryStream();
         await GameBanana.CopyLimited(input,output,40*1024*1024,token);
         using var doc=JsonDocument.Parse(output.ToArray()); return doc.RootElement.Clone();

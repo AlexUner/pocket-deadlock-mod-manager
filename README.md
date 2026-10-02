@@ -9,6 +9,7 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 <details><summary>English light theme, library and loadout keys</summary>
 
 ![English light theme](assets/catalog-en-light.png)
+![Searchable categories](assets/category-search-ru.png)
 ![Local mod library](assets/library-en.png)
 ![Loadout profiles and sharing keys](assets/profiles-en.png)
 
@@ -16,7 +17,8 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 
 ## Features
 
-- **Three catalogs:** GameBanana, Deadlocker, and DeadlockMods; GameBanana and DeadlockMods include sounds; Deadlocker currently provides mods. Previews and author/source links are available; category filters and sorting by update time, name, downloads, or likes cover the saved index before pagination.
+- **One combined catalog:** GameBanana, Deadlocker, and DeadlockMods work behind the scenes. Origin IDs remove duplicate listings while retaining community-only mods. Mod and sound browsing share one search; no provider switching is needed. Category filtering and sorting cover the combined index before pagination.
+- **Searchable categories:** open **All categories** and type to narrow the list. Down/Enter selects a category; Escape closes it. Secondary sorting choices are in the small **Sort** menu.
 - **Local search:** a saved disk index, background refresh at startup, debounced search, and fresh GameBanana results added to indexed results. Paste a GameBanana mod or sound URL to open it directly.
 - **Local library:** import VPK, ZIP, RAR, or 7Z; drag files into the window; choose VPK files inside archives; copy selected old VPK files from the game's `addons` folder.
 - **Downloads and favorites:** two simultaneous transfers, cancellation, saved operation history, and local favorites.
@@ -111,6 +113,7 @@ Offline tests use synthetic game and catalog fixtures. The default run also exer
 | `Models.cs` | Catalog, library, profile, activity, revision records |
 | `GameBanana.cs`, `Catalogs.cs` | `IModCatalog`, origin API access, community adapters |
 | `HybridCatalogs.cs` | Disk index, local queries, background refresh, remote-search enrichment |
+| `UnifiedCatalog.cs`, `MainWindow.Catalog.cs` | Combined provider identities, searchable category picker, secondary sorting menu |
 | `ModStorage.cs` | Atomic state writes, archives, hashes, VPK validation, revisions, rollback |
 | `GameInstall.cs` | Steam detection, running-game checks, scoped copies and configuration patching |
 | `Profiles.cs` | Profile selection, JSON transfer, PD1 encoding and validation |
@@ -139,7 +142,8 @@ PocketDeadlock - менеджер модов Deadlock для Windows x64. Он �
 
 ### Основные возможности
 
-- GameBanana и DeadlockMods - моды и звуки, Deadlocker - моды. Есть превью и страницы авторов. Поиск, фильтры категорий и сортировка работают по всему сохраненному индексу до деления на страницы; фоновые запросы GameBanana дополняют его свежими результатами.
+- Один общий каталог: GameBanana, Deadlocker и DeadlockMods работают внутри программы. Совпадающие записи объединяются по идентификатору исходного мода; переключать базы не нужно. Сохраняются моды, звуки и уникальные записи сообществ.
+- В **Все категории** есть поиск. Стрелка вниз и Enter выбирают категорию, Escape закрывает список. Сортировка доступна в небольшом меню **Порядок**. Фильтры и сортировка работают по всему объединенному индексу до деления на страницы; фоновые запросы дополняют результаты.
 - Импорт VPK, ZIP, RAR и 7Z, перетаскивание файлов и выбор VPK внутри архива. **Найти старые VPK** копирует выбранные файлы из `addons` в библиотеку, сохраняя оригиналы.
 - Две одновременные загрузки, отмена, история операций и избранное.
 - Порядок модов, разрешение перекрытий, сохранение наборов в профили, обмен JSON и ключами PD1.

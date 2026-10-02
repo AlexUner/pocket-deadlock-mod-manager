@@ -70,12 +70,29 @@
           </WrapPanel>
           <TextBox x:Name="LibrarySearch" Tag="{local:I18n Text='Поиск в библиотеке'}" TextChanged="FilterLibrary" ToolTip="{local:I18n Text='Поиск в библиотеке'}" AutomationProperties.Name="{local:I18n Text='Поиск в библиотеке'}" />
         </StackPanel>
-        <WrapPanel Grid.Row="2" x:Name="FiltersPanel" Margin="0,0,0,12">
-          <ComboBox x:Name="SourcesBox" Width="160" Margin="0,0,8,0" SelectionChanged="SourceChanged" AutomationProperties.Name="{local:I18n Text='Источник каталога'}" />
-          <ComboBox x:Name="CategoryFilter" Width="175" Margin="0,0,8,0" SelectionChanged="FilterCatalog" AutomationProperties.Name="{local:I18n Text='Категория на странице'}" />
-          <ComboBox x:Name="SortBox" Width="170" SelectionChanged="FilterCatalog" AutomationProperties.Name="{local:I18n Text='Порядок на странице'}" />
-          <TextBlock Text="{local:I18n Text='Локальный индекс'}" Foreground="{DynamicResource Muted}" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0" />
-        </WrapPanel>
+        <Grid Grid.Row="2" x:Name="FiltersPanel" Margin="0,0,0,12">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+          <Button x:Name="CategoryButton" Click="OpenCategories" HorizontalAlignment="Left" Width="360" AutomationProperties.Name="{local:I18n Text='Выбрать категорию'}">
+            <Grid Width="324"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="20"/></Grid.ColumnDefinitions><TextBlock x:Name="CategoryButtonLabel" Text="{local:I18n Text='Все категории'}" TextTrimming="CharacterEllipsis"/><TextBlock Grid.Column="1" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center"/></Grid>
+          </Button>
+          <Popup x:Name="CategoryPopup" Placement="Bottom" PlacementTarget="{Binding ElementName=CategoryButton}" StaysOpen="False" AllowsTransparency="True" Opened="CategoriesOpened" Closed="CategoriesClosed">
+            <Border Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="1" Padding="12" Width="360" CornerRadius="4">
+              <StackPanel>
+                <TextBox x:Name="CategorySearch" Tag="{local:I18n Text='Найти категорию'}" TextChanged="SearchCategories" PreviewKeyDown="CategorySearchKey" AutomationProperties.Name="{local:I18n Text='Поиск по категориям'}" Margin="0,0,0,12"/>
+                <ListBox x:Name="CategoryList" MaxHeight="300" PreviewMouseLeftButtonUp="PickCategory" PreviewKeyDown="CategoryListKey" AutomationProperties.Name="{local:I18n Text='Категории'}"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" TextWrapping="Wrap"/></DataTemplate></ListBox.ItemTemplate></ListBox>
+                <TextBlock x:Name="CategoryEmpty" Text="{local:I18n Text='Категории не найдены'}" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Margin="0,8,0,0" Visibility="Collapsed"/>
+              </StackPanel>
+            </Border>
+          </Popup>
+          <Button x:Name="SortButton" Grid.Column="1" Content="{local:I18n Text='Порядок'}" Click="OpenSort" AutomationProperties.Name="{local:I18n Text='Порядок модов в каталоге'}">
+            <Button.ContextMenu><ContextMenu Background="{DynamicResource Panel}" Foreground="{DynamicResource Ink}" BorderBrush="{DynamicResource Line}">
+              <MenuItem Header="{local:I18n Text='Последние обновления'}" Tag="0" IsCheckable="True" IsChecked="True" Click="ChangeSort"/>
+              <MenuItem Header="{local:I18n Text='Название'}" Tag="1" IsCheckable="True" Click="ChangeSort"/>
+              <MenuItem Header="{local:I18n Text='Загрузки'}" Tag="2" IsCheckable="True" Click="ChangeSort"/>
+              <MenuItem Header="{local:I18n Text='Оценки'}" Tag="3" IsCheckable="True" Click="ChangeSort"/>
+            </ContextMenu></Button.ContextMenu>
+          </Button>
+        </Grid>
         <Grid Grid.Row="3">
           <ListBox x:Name="CatalogList" SelectionChanged="SelectedMod" AutomationProperties.Name="{local:I18n Text='Каталог модов'}">
             <ListBox.ItemTemplate>
