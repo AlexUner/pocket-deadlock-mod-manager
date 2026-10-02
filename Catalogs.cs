@@ -70,14 +70,14 @@ public sealed class CommunityCatalog(string source) : IModCatalog
                 string key=S(x,"id"),link=S(x,"mod_link"); long id=GameBanana.Number(x,"gamebanana_id");
                 string kind=link.Contains("/sounds/") || S(x,"mod_type").Contains("sound",StringComparison.OrdinalIgnoreCase)?"Sound":"Mod";
                 var item=new CatalogItem(id,kind,S(x,"title"),"Deadlocker",S(x,"gb_category")+" · "+S(x,"character_name"),
-                    S(x,"main_image"),"https://deadlocker.net/mod/"+Uri.EscapeDataString(key),Math.Max(Time(S(x,"gb_updated_at")),Time(S(x,"updated_at"))),source,key);
+                    S(x,"main_image"),"https://deadlocker.net/mod/"+Uri.EscapeDataString(key),Math.Max(Time(S(x,"gb_updated_at")),Time(S(x,"updated_at"))),source,key,Hero:S(x,"character_name"),ModType:S(x,"gb_category"));
                 items.Add((item,S(x,"description")));
             }
             else
             {
                 if(!long.TryParse(S(x,"remoteId"),out var id)) continue;
                 var images=GameBanana.Child(x,"images"); string image=images.ValueKind==JsonValueKind.Array && images.GetArrayLength()>0?images[0].GetString()??"":"";
-                var item=new CatalogItem(id,B(x,"isAudio")?"Sound":"Mod",S(x,"name"),S(x,"author"),S(x,"category")+" · "+S(x,"hero"),image,S(x,"remoteUrl"),Time(S(x,"remoteUpdatedAt")),source,S(x,"id"));
+                var item=new CatalogItem(id,B(x,"isAudio")?"Sound":"Mod",S(x,"name"),S(x,"author"),S(x,"category")+" · "+S(x,"hero"),image,S(x,"remoteUrl"),Time(S(x,"remoteUpdatedAt")),source,S(x,"id"),Hero:S(x,"hero"),ModType:S(x,"category"));
                 items.Add((item,S(x,"description")));
             }
         }

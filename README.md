@@ -9,7 +9,8 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 <details><summary>English light theme, library and loadout keys</summary>
 
 ![English light theme](assets/catalog-en-light.png)
-![Searchable categories](assets/category-search-ru.png)
+![Hero search recognizes page as Paige](assets/category-search-ru.png)
+![Mod types for the selected hero](assets/mod-type-search-ru.png)
 ![Local mod library](assets/library-en.png)
 ![Loadout profiles and sharing keys](assets/profiles-en.png)
 
@@ -17,9 +18,9 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 
 ## Features
 
-- **One combined catalog:** GameBanana, Deadlocker, and DeadlockMods work behind the scenes. Origin IDs remove duplicate listings while retaining community-only mods. Mod and sound browsing share one search; no provider switching is needed. Category filtering and sorting cover the combined index before pagination.
-- **Searchable categories:** open **All categories** and type to narrow the list. Down/Enter selects a category; Escape closes it. Secondary sorting choices are in the small **Sort** menu.
-- **Local search:** a saved disk index, background refresh at startup, debounced search, and fresh GameBanana results added to indexed results. Paste a GameBanana mod or sound URL to open it directly.
+- **One combined catalog:** GameBanana, Deadlocker, and DeadlockMods work behind the scenes. Origin IDs remove duplicate listings while retaining community-only mods. Hero/type filtering and sorting cover the combined index before pagination.
+- **Hero and mod-type filters:** choose a hero and independently choose skins/models, interface, effects, weapons, music, voices, or another type. Both pickers include search, counts, Down/Enter selection and Escape. Type counts follow the selected or searched hero; Reset clears both filters. Sorting is in the small **Sort** menu.
+- **Hero-aware local search:** `page`, `Paige` and `пейдж` recognize Paige, including mods whose title omits the hero. Russian names and common aliases are supported for the recognized hero roster. A saved disk index, background startup refresh and debounced search keep repeated queries local. Fresh GameBanana rows are merged, then filtered by indexed title, author, hero and type metadata; unrelated full-text hits cannot bypass relevance. Paste a GameBanana URL to open it directly.
 - **Local library:** import VPK, ZIP, RAR, or 7Z; drag files into the window; choose VPK files inside archives; copy selected old VPK files from the game's `addons` folder.
 - **Downloads and favorites:** two simultaneous transfers, cancellation, saved operation history, and local favorites.
 - **Priority and overlaps:** enable mods, reorder by dragging or Move up/Move down, and explicitly permit a higher-priority mod to override overlapping resources.
@@ -113,7 +114,7 @@ Offline tests use synthetic game and catalog fixtures. The default run also exer
 | `Models.cs` | Catalog, library, profile, activity, revision records |
 | `GameBanana.cs`, `Catalogs.cs` | `IModCatalog`, origin API access, community adapters |
 | `HybridCatalogs.cs` | Disk index, local queries, background refresh, remote-search enrichment |
-| `UnifiedCatalog.cs`, `MainWindow.Catalog.cs` | Combined provider identities, searchable category picker, secondary sorting menu |
+| `UnifiedCatalog.cs`, `CatalogTaxonomy.cs`, `MainWindow.Catalog.cs` | Combined identities, hero aliases, independent searchable hero/type filters and sorting |
 | `ModStorage.cs` | Atomic state writes, archives, hashes, VPK validation, revisions, rollback |
 | `GameInstall.cs` | Steam detection, running-game checks, scoped copies and configuration patching |
 | `Profiles.cs` | Profile selection, JSON transfer, PD1 encoding and validation |
@@ -143,7 +144,8 @@ PocketDeadlock - менеджер модов Deadlock для Windows x64. Он �
 ### Основные возможности
 
 - Один общий каталог: GameBanana, Deadlocker и DeadlockMods работают внутри программы. Совпадающие записи объединяются по идентификатору исходного мода; переключать базы не нужно. Сохраняются моды, звуки и уникальные записи сообществ.
-- В **Все категории** есть поиск. Стрелка вниз и Enter выбирают категорию, Escape закрывает список. Сортировка доступна в небольшом меню **Порядок**. Фильтры и сортировка работают по всему объединенному индексу до деления на страницы; фоновые запросы дополняют результаты.
+- **Все герои** и **Все типы модов** - отдельные фильтры с поиском. Можно выбрать Пейдж (Paige), затем скины, интерфейс или другой тип. Стрелка вниз и Enter выбирают пункт, Escape закрывает список, **Сбросить** очищает оба фильтра. Счетчики типов учитывают выбранного или найденного героя. Сортировка доступна в меню **Порядок**.
+- Поиск `page`, `Paige` и `пейдж` находит одного героя, включая моды без его имени в названии. Поддерживаются русские имена и распространенные варианты написания героев из списка. Индекс сохраняется на диске, обновляется в фоне и отвечает локально; новые записи GameBanana проходят ту же проверку соответствия. Фильтры и сортировка работают до деления на страницы.
 - Импорт VPK, ZIP, RAR и 7Z, перетаскивание файлов и выбор VPK внутри архива. **Найти старые VPK** копирует выбранные файлы из `addons` в библиотеку, сохраняя оригиналы.
 - Две одновременные загрузки, отмена, история операций и избранное.
 - Порядок модов, разрешение перекрытий, сохранение наборов в профили, обмен JSON и ключами PD1.

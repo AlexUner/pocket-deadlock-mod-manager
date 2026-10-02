@@ -145,7 +145,7 @@ public sealed class GameBanana : IModCatalog
         if(category=="") category=Text(Child(x,"_aCategory"),"_sName");
         var hero=Text(Child(x,"_aSubCategory"),"_sName");
         return new(Number(x,"_idRow"),kind,Text(x,"_sName"),Text(Child(x,"_aSubmitter"),"_sName"),
-            category+(hero=="" ? "" : " · "+hero),image,Text(x,"_sProfileUrl"),Number(x,"_tsDateModified"),Downloads:Number(x,"_nDownloadCount"),Likes:Number(x,"_nLikeCount"));
+            category+(hero=="" ? "" : " · "+hero),image,Text(x,"_sProfileUrl"),Number(x,"_tsDateModified"),Downloads:Number(x,"_nDownloadCount"),Likes:Number(x,"_nLikeCount"),Hero:CatalogTaxonomy.ResolveHero(hero)==""?CatalogTaxonomy.ResolveHero(category):CatalogTaxonomy.ResolveHero(hero),ModType:category);
     }
     internal static JsonElement Child(JsonElement x,string key) => x.ValueKind==JsonValueKind.Object && x.TryGetProperty(key,out var v) ? v : default;
     internal static string Text(JsonElement x,string key) => Child(x,key).ValueKind==JsonValueKind.String ? Child(x,key).GetString()! : "";

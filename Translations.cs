@@ -38,6 +38,22 @@ PocketDeadlock · Менеджер модов|PocketDeadlock · Mod Manager
 Профили|Profiles
 Найти|Search
 Все категории|All categories
+Все герои|All heroes
+Все типы модов|All mod types
+Выбрать героя|Choose a hero
+Выбрать тип мода|Choose a mod type
+Найти героя|Find a hero
+Найти тип мода|Find a mod type
+Герои|Heroes
+Типы модов|Mod types
+Герои не найдены|No heroes found
+Типы модов не найдены|No mod types found
+Без привязки к герою|Any hero
+Сбросить|Reset
+Сбросить фильтры|Reset filters
+Поиск по герою:|Hero search:
+Ищи по названию или герою. Тип мода можно выбрать в фильтре.|Search by name or hero. Choose a mod type in the filter.
+Ничего не найдено. Сбрось фильтры или попробуй другое название.|No matches. Reset the filters or try another name.
 Последние обновления|Recently updated
 Название|Name
 Загрузок: |Downloads: 

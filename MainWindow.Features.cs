@@ -58,7 +58,7 @@ public partial class MainWindow
     async Task ApplyCatalogFilter()
     {
         if(!favoritesView) {if(IsLoaded && !busy) {page=1;await LoadCatalog();}return;}
-        var result=UnifiedCatalog.Query(UnifiedCatalog.Merge(catalogRows),"","",1,SelectedCategory,sortIndex,perPage:int.MaxValue);
+        var result=UnifiedCatalog.Query(UnifiedCatalog.Merge(catalogRows),"","",1,SelectedCategory,sortIndex,perPage:int.MaxValue,hero:selectedHero);
         CatalogList.ItemsSource=result.Items;EmptyLabel.Visibility=result.Total==0?Visibility.Visible:Visibility.Collapsed;
     }
     void FilterLibrary(object sender,TextChangedEventArgs e) {if(library) RefreshLibrary();}
@@ -223,12 +223,14 @@ public partial class MainWindow
     {
         if(!IsLoaded || busy || library || favoritesView || FeatureScreen.Visibility==Visibility.Visible) return;
         var selected=CatalogList.SelectedItem as CatalogItem;
-        var result=await sources.QueryUnified(activeKind,activeSearch,page,SelectedCategory,sortIndex,CancellationToken.None);
+        var result=await sources.QueryUnified(activeKind,activeSearch,page,SelectedCategory,sortIndex,CancellationToken.None,selectedHero);
         total=result.Total;perPage=result.PerPage;DisplayCatalog(result.Items);settingFilters=true;
         PageLabel.Text=L.T($"Страница {page} из {Math.Max(1,(int)Math.Ceiling(total/(double)perPage))} · Всего: {total}");
         PreviousButton.IsEnabled=page>1;NextButton.IsEnabled=page*perPage<total;
-        if(selected!=null) CatalogList.SelectedItem=result.Items.FirstOrDefault(x=>UnifiedCatalog.Identity(x)==UnifiedCatalog.Identity(selected));
+        var retained=selected==null?null:result.Items.FirstOrDefault(x=>UnifiedCatalog.Identity(x)==UnifiedCatalog.Identity(selected));
+        CatalogList.SelectedItem=retained??result.Items.FirstOrDefault();
         settingFilters=false;
+        if(retained==null) {ClearDetail();if(CatalogList.SelectedItem is CatalogItem fresh) lastDetail=ShowDetail(fresh);}
         EmptyLabel.Visibility=result.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
         if(result.Total==0) EmptyLabel.Text=sources.IsRefreshing?L.T("Каталог загружается в фоне. Результаты появятся здесь."):L.T("Ничего не найдено. Попробуй другое название или страницу.");
     }

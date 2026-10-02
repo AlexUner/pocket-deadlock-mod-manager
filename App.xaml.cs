@@ -44,6 +44,7 @@ public partial class App : Application
             L.Set(storage.State.Language);L.Theme(storage.State.Theme);
             if(!GameInstall.Valid(storage.State.GamePath)) { storage.State.GamePath=GameInstall.Detect(); storage.Save(); }
             var window=new MainWindow(storage,preview?Path.GetFullPath(e.Args[1]):null);
+            if(preview && e.Args.Contains("--small")) {window.Width=window.MinWidth;window.Height=window.MinHeight;}
             MainWindow=window; window.Show();
         }
         catch(Exception ex)

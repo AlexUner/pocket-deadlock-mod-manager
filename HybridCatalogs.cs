@@ -26,10 +26,12 @@ public sealed class HybridCatalogs
     public Task<CatalogPage> Query(string name,string kind,string search,int page,string category,int sort,CancellationToken token)=>catalogs.GetValueOrDefault(name,catalogs["GameBanana"]).Query(kind,search,page,category,sort,token);
     List<UnifiedEntry> Unified() {lock(unifiedGate) return unifiedCache??=UnifiedCatalog.Merge(catalogs.Values.SelectMany(x=>x.Snapshot()));}
     public List<string> UnifiedCategories(string kind)=>UnifiedCatalog.Categories(Unified(),kind);
-    public Task<CatalogPage> QueryUnified(string kind,string search,int page,string category,int sort,CancellationToken token)
+    public List<CatalogFilter> HeroFilters(string kind)=>CatalogTaxonomy.HeroFilters(Unified(),kind);
+    public List<CatalogFilter> TypeFilters(string kind,string hero="")=>CatalogTaxonomy.TypeFilters(Unified().Where(x=>hero=="" || (hero=="__general"?x.Heroes.Count==0:x.Heroes.Contains(hero))),kind);
+    public Task<CatalogPage> QueryUnified(string kind,string search,int page,string category,int sort,CancellationToken token,string hero="")
     {
-        token.ThrowIfCancellationRequested();if(allowRemoteSearch) catalogs["GameBanana"].EnrichSearch(kind,search,token);
-        return Task.FromResult(UnifiedCatalog.Query(Unified(),kind,search,page,category,sort,catalogs["GameBanana"].RemoteMatches(kind,search)));
+        token.ThrowIfCancellationRequested();if(allowRemoteSearch) catalogs["GameBanana"].EnrichSearch(kind,CatalogTaxonomy.Search(search).RemoteText,token);
+        return Task.FromResult(UnifiedCatalog.Query(Unified(),kind,search,page,category,sort,hero:hero));
     }
     public async Task Warm(CancellationToken token)
     {

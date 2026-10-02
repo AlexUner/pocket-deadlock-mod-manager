@@ -203,7 +203,7 @@ Navigation is a wrapping row of native buttons: Catalog, Library, Favorites, Dow
 
 ### Catalog / Library Rows
 
-The catalog combines all providers internally and offers no provider switch. Below the main search, a 360-unit category button opens a native popup with a search field, matching categories, an explicit empty state, and an All categories reset. Down/Enter selects; Escape closes. Sorting stays in a small secondary menu at the right, rather than a persistent Recently updated selector. Matching listings share one row; content types and distinct origin identities remain separate.
+The catalog combines all providers internally and offers no provider switch. Below the main search, two 250-unit buttons independently select hero and mod type. Each opens a 360-unit native popup with search, matching choices, counts, an explicit empty state and an All reset. Hero names use a Russian label plus canonical English name in Russian mode. Hero aliases work in both the picker and main search. Type choices and counts follow the selected or searched hero. Down/Enter selects; Escape closes. A Reset button clears both filters and wraps at minimum width. Sorting stays in a small secondary menu at the right. Matching listings share one row; content kinds and distinct origin identities remain separate.
 
 A row places a semibold name above muted category/author or library metadata. Rows use `row` padding and `related` vertical gaps. Selection changes fill and boundary; hover changes the boundary; keyboard focus uses ink. Library rows add an enabled checkbox. Drag reordering and Higher/Lower change priority without changing row geometry.
 

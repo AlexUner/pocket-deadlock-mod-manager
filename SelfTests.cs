@@ -162,7 +162,7 @@ internal static class SelfTests
         assert(UnifiedCatalog.Query(merged,"Mod","",1,"",0).Total==4 && UnifiedCatalog.Query(merged,"Sound","",1,"",0).Total==1,"unified catalog preserves sounds and unrelated same-name mods");
         assert(UnifiedCatalog.Query(merged,"Mod","",1,"ui / haze",0).Total==2 && UnifiedCatalog.Categories(merged,"Mod").Count==2,"equivalent category separators normalize and filtering is case-insensitive");
         assert(UnifiedCatalog.Category("Haze · Haze / haze")=="Haze","category labels remove repeated adjacent hero names");
-        assert(UnifiedCatalog.Query(merged,"Mod","missing",1,"",0,new(){UnifiedCatalog.Identity(official)}).Total==1,"fresh remote matches enrich the combined result without duplicates");
+        assert(UnifiedCatalog.Query(merged,"Mod","missing",1,"",0,new(){UnifiedCatalog.Identity(official)}).Total==0,"unrelated remote full-text hits cannot bypass local relevance filtering");
         assert(UnifiedCatalog.Query(merged,"","",1,"",0).Total==5,"favorites filtering can retain both mods and sounds");
         var many=Enumerable.Range(100,50).Select(id=>official with {Id=id,Name="Paged "+id,Category="UI"}).ToList();
         var paged=UnifiedCatalog.Query(UnifiedCatalog.Merge(many.Concat(many.Select(x=>x with {Provider="Deadlocker"}))),"Mod","",2,"UI",1);
@@ -182,6 +182,34 @@ internal static class SelfTests
         var cold=new HybridCatalogs(Path.Combine(run,"cold-unified-data"),false);
         page=await cold.QueryUnified("Mod","Haze",1,"",0,CancellationToken.None);
         assert(page.Total==0,"empty combined index returns immediately while startup refresh can populate it");
+        HeroTests(assert);
+    }
+    static void HeroTests(Action<bool,string> assert)
+    {
+        var goth=new CatalogItem(501,"Mod","Goth Paige","Author","Paige","","https://gamebanana.com/mods/501",10);
+        var alias=goth with {Provider="DeadlockMods",Category="Skins · Paige",Name="Community Paige",Hero="Paige"};
+        var melody=goth with {Id=502,Name="My Melody",Category="Skins · Paige"};
+        var icon=goth with {Id=503,Name="Portrait update",Category="HUD",Hero="Paige"};
+        var mina=goth with {Id=504,Name="Blue Mina Effects",Category="Skins · Mina"};
+        var rampage=goth with {Id=505,Name="Billy RAMPAGE",Category="Other/Misc · Billy"};
+        var profile=goth with {Id=506,Name="Profile Win Rate",Category="HUD",Author="Page"};
+        var bars=profile with {Id=507,Name="Classic Health Bars",Author="Author"};
+        var rows=UnifiedCatalog.Merge([goth,alias,melody,icon,mina,rampage,profile,bars]);
+        foreach(string query in new[]{"page","Paige","пейдж","пэйдж","PAIGE","paig"})
+            assert(UnifiedCatalog.Query(rows,"Mod",query,1,"",0).Items.Select(x=>x.Id).Order().SequenceEqual(new long[]{501,502,503}),query+" finds hero metadata and excludes Page author, Mina and RAMPAGE");
+        assert(UnifiedCatalog.Query(rows,"Mod","page goth",1,"",0).Items.Single().Id==501,"hero alias combines with title keywords");
+        assert(UnifiedCatalog.Query(rows,"Mod","",1,"type:appearance",0,hero:"Paige").Total==2,"hero and skin type filters combine across provider metadata");
+        assert(UnifiedCatalog.Query(rows,"Mod","",1,"type:interface",0,hero:"Paige").Items.Single().Id==503,"hero interface filter excludes general HUD mods");
+        assert(UnifiedCatalog.Query(rows,"Mod","",1,"type:interface",0,hero:"__general").Total==2,"general HUD mods remain available without a hero");
+        assert(UnifiedCatalog.Query(rows,"Mod","",1,"",0).Total==7,"clearing filters restores every unique mod");
+        var heroes=CatalogTaxonomy.HeroFilters(rows,"Mod");
+        assert(heroes.Single(x=>x.Value=="Paige").Count==3 && CatalogTaxonomy.MatchesHeroChoice("Paige","page") && CatalogTaxonomy.MatchesHeroChoice("Paige","пейдж"),"hero picker recognizes aliases and counts deduplicated mods");
+        var types=CatalogTaxonomy.TypeFilters(rows,"Mod");
+        assert(types.Count==3 && types.Any(x=>x.Value=="type:appearance" && x.Count==3) && CatalogTaxonomy.MatchesTypeChoice("appearance","скин"),"raw categories become searchable independent mod types");
+        assert(rows.Single(x=>x.Item.Id==501).Type=="appearance","community metadata recovers skin type when origin category only names hero");
+        assert(CatalogTaxonomy.Search("lady geist skin").Hero=="Lady Geist" && CatalogTaxonomy.Search("серый коготь").Hero=="Grey Talon" && CatalogTaxonomy.Search("the mod").Hero=="","multiword hero aliases preserve ordinary query words");
+        assert(UnifiedCatalog.Query(rows,"Mod","пейдж интерфейс",1,"",0).Items.Single().Id==503,"Russian hero and type search works together");
+        assert(UnifiedCatalog.Query(rows,"Mod","",1,"",0,hero:"Haze").Total==0,"unavailable hero filter does not fall back to unrelated mods");
     }
     static async Task UpdateTests(string run,Action<bool,string> assert,Action<Action,string> fails)
     {

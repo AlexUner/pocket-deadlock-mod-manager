@@ -2,9 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace PocketDeadlock;
 
-public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0)
+public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0,string Hero="",string ModType="")
 {
-    public string Caption => $"{Category}  /  {Author}";
+    public string Caption => CatalogTaxonomy.Caption(this);
 }
 public record RemoteFile(long Id, string Name, long Size, string Url, string Md5, bool Blocked, string Description="", long Added=0)
 {

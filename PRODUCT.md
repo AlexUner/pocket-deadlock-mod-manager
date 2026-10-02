@@ -17,7 +17,7 @@ Manage the supported VPK workflow in one desktop tool: discover, download or imp
 ## Operating Context
 
 - Windows with Steam and an installed copy of Deadlock. Standard Steam libraries are detected; the player can choose a game folder.
-- Catalog metadata comes from GameBanana, Deadlocker, and DeadlockMods behind one combined catalog. There is no provider selector. Matching origin IDs and content kinds merge duplicates; exclusive community entries remain. Search, category filtering, and sorting cover the combined disk index before pagination. Background refresh and fresh GameBanana searches enrich results; selected details and download files come from the origin.
+- Catalog metadata comes from GameBanana, Deadlocker, and DeadlockMods behind one combined catalog. There is no provider selector. Matching origin IDs and content kinds merge duplicates; exclusive community entries remain. Hero/type filtering and sorting cover the combined index before pagination. Fresh GameBanana rows are merged and subjected to the same relevance filter; remote full-text membership alone cannot admit an unrelated mod. Selected details and files come from the origin.
 - Community metadata can seed the GameBanana index. Community-only entries require opening the source page and importing a downloaded file.
 - Downloads, profile selection, and library changes are separate from applying files to the game. Apply, Disable, and Launch are unavailable while Deadlock is detected as running.
 - Update checks occur at startup and every 30 minutes while the manager is open, according to saved settings. There is no background service after it closes.
@@ -26,7 +26,7 @@ Manage the supported VPK workflow in one desktop tool: discover, download or imp
 
 ### Supported workflows
 
-- Browse mods and sounds in one catalog; search names, heroes, categories, and authors; open a GameBanana mod or sound URL. The category picker includes a case-insensitive search and keyboard selection. Sorting by update time, name, downloads, or likes is a secondary menu.
+- Browse mods and sounds in one catalog; search names, authors, recognized heroes and mod types; open a GameBanana URL. Hero aliases recognize page/Paige/пейдж and common Russian names. Separate searchable hero/type pickers support keyboard selection and reset. Mod-type counts follow the selected or searched hero. Sorting by update time, name, downloads or likes is a secondary menu.
 - Keep local favorites. Queue downloads with two active transfers, cancellation, and a saved operation history.
 - Import VPK, ZIP, RAR, and 7Z using a file dialog or drag and drop. Choose VPK files inside archives. Scan existing `game/citadel/addons` and copy selected VPK files into the library.
 - Enable or disable entries, search the library, reorder priority with buttons or drag and drop, and explicitly allow a higher-priority mod to override overlapping resources.

@@ -107,13 +107,14 @@ public partial class MainWindow : Window
     async Task LoadCatalog()=>await Run(L.T("Загружаем каталог…"),async token=>
     {
         SetTab(false);
-        var result=await sources.QueryUnified(activeKind,activeSearch,page,SelectedCategory,sortIndex,token);
+        var result=await sources.QueryUnified(activeKind,activeSearch,page,SelectedCategory,sortIndex,token,selectedHero);
         DisplayCatalog(result.Items); total=result.Total; perPage=result.PerPage;
         PageLabel.Text=L.T($"Страница {page} из {Math.Max(1,(int)Math.Ceiling(total/(double)perPage))} · Всего: {total}");
         PreviousButton.IsEnabled=page>1; NextButton.IsEnabled=page*perPage<total;
-        EmptyLabel.Text=L.T("Ничего не найдено. Попробуй другое название или страницу.");
+        EmptyLabel.Text=L.T("Ничего не найдено. Сбрось фильтры или попробуй другое название.");
         EmptyLabel.Visibility=result.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
-        ClearDetail();StatusLabel.Text=L.T("Ищи по названию, герою или категории.");
+        ClearDetail();var searchPlan=CatalogTaxonomy.Search(activeSearch);
+        StatusLabel.Text=searchPlan.Hero==""?L.T("Ищи по названию или герою. Тип мода можно выбрать в фильтре."):L.T("Поиск по герою: ")+CatalogTaxonomy.HeroLabel(searchPlan.Hero);
         if(result.Total==0 && sources.IsRefreshing) EmptyLabel.Text=L.T("Каталог загружается в фоне. Результаты появятся здесь.");
         if(result.Items.Count>0) { CatalogList.SelectedIndex=0;lastDetail=ShowDetail(result.Items[0]); }
     });
@@ -136,7 +137,8 @@ public partial class MainWindow : Window
     {
         ClearDetail();int generation=detailGeneration;
         var fetched=item==null?await new GameBanana().Details(kind,id,token):await sources.Get(item.Provider).Details(item,token);
-        if(generation!=detailGeneration) return;details=fetched;
+        if(generation!=detailGeneration) return;
+        details=item==null?fetched:fetched with {Item=fetched.Item with {Hero=item.Hero,ModType=item.ModType}};
         DetailTitle.Text=details.Item.Name; DetailMeta.Text=details.Item.Caption; DetailText.Text=details.Description;
         RequirementsLabel.Text=details.Requirements.Length>0?L.T("Требования автора: ")+details.Requirements:"";
         sourceUrl=details.Item.Url; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
@@ -192,7 +194,7 @@ public partial class MainWindow : Window
         }
         activeSearch=input; activeKind=KindBox.SelectedIndex==1?"Sound":"Mod"; page=1; await LoadCatalog();
     }
-    async void KindChanged(object sender,SelectionChangedEventArgs e) { if(IsLoaded && !busy && !settingFilters) { activeKind=KindBox.SelectedIndex==1?"Sound":"Mod";selectedCategory="";page=1;await LoadCatalog(); } }
+    async void KindChanged(object sender,SelectionChangedEventArgs e) { if(IsLoaded && !busy && !settingFilters) { activeKind=KindBox.SelectedIndex==1?"Sound":"Mod";selectedCategory=selectedHero="";page=1;await LoadCatalog(); } }
     async void Previous(object sender,RoutedEventArgs e) { if(page>1) { page--; await LoadCatalog(); } }
     async void Next(object sender,RoutedEventArgs e) { page++; await LoadCatalog(); }
     async void ShowCatalog(object sender,RoutedEventArgs e) {SetTab(false);if(CatalogList.SelectedItem is CatalogItem item) {lastDetail=ShowDetail(item);await lastDetail;}}
