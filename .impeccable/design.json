@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-02T16:33:40.626Z",
+  "title": "Design System: PocketDeadlock",
+  "extensions": {
+    "colorMeta": {
+      "moss-canvas": {
+        "role": "neutral",
+        "displayName": "Moss Canvas"
+      },
+      "moss-panel": {
+        "role": "neutral",
+        "displayName": "Moss Panel"
+      },
+      "moss-line": {
+        "role": "neutral",
+        "displayName": "Moss Line"
+      },
+      "warm-ink": {
+        "role": "neutral",
+        "displayName": "Warm Ink"
+      },
+      "moss-muted": {
+        "role": "neutral",
+        "displayName": "Moss Muted"
+      },
+      "lime-action": {
+        "role": "primary",
+        "displayName": "Lime Action"
+      },
+      "deep-input": {
+        "role": "neutral",
+        "displayName": "Deep Input"
+      },
+      "moss-selection": {
+        "role": "neutral",
+        "displayName": "Moss Selection"
+      },
+      "action-ink": {
+        "role": "neutral",
+        "displayName": "Action Ink"
+      },
+      "row-hover": {
+        "role": "neutral",
+        "displayName": "Row Hover"
+      },
+      "light-canvas": {
+        "role": "neutral",
+        "displayName": "Light Canvas"
+      },
+      "light-panel": {
+        "role": "neutral",
+        "displayName": "Light Panel"
+      },
+      "light-line": {
+        "role": "neutral",
+        "displayName": "Light Line"
+      },
+      "light-ink": {
+        "role": "neutral",
+        "displayName": "Light Ink"
+      },
+      "light-muted": {
+        "role": "neutral",
+        "displayName": "Light Muted"
+      },
+      "light-action": {
+        "role": "primary",
+        "displayName": "Light Action"
+      },
+      "light-input": {
+        "role": "neutral",
+        "displayName": "Light Input"
+      },
+      "light-selection": {
+        "role": "neutral",
+        "displayName": "Light Selection"
+      }
+    },
+    "typographyMeta": {
+      "brand": {
+        "displayName": "Brand",
+        "purpose": "Application name in the main header."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Selected-mod and settings headings."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Profile-transfer and history sections."
+      },
+      "item-title": {
+        "displayName": "Item Title",
+        "purpose": "Catalog and library row names."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Control labels, descriptions, and status messages."
+      },
+      "action": {
+        "displayName": "Action",
+        "purpose": "Semibold labels on primary buttons."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Supporting metadata, path, and format help."
+      }
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Dark-theme translation of the WPF primary action. Minimum 40-unit control, native focus, no authored motion.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Apply selected mods</button>",
+      "css": ".ds-btn { box-sizing: border-box; min-height: 40px; padding: 10px 16px; border: 1px solid #485A4E; border-radius: 4px; font: 14px 'Segoe UI', sans-serif; cursor: pointer; } .ds-btn-primary { background: #D5E998; color: #172119; font-weight: 600; } .ds-btn-primary:hover { border-color: #D5E998; } .ds-btn-primary:focus-visible { border: 2px solid #F0EFE6; outline: none; } .ds-btn-primary:disabled { opacity: 0.4; cursor: default; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Shared secondary action, with panel fill and border-based hover/focus.",
+      "html": "<button class=\"ds-btn ds-btn-secondary\">Game folder</button>",
+      "css": ".ds-btn { box-sizing: border-box; min-height: 40px; padding: 10px 16px; border: 1px solid #485A4E; border-radius: 4px; font: 14px 'Segoe UI', sans-serif; cursor: pointer; } .ds-btn-secondary { background: #1E2623; color: #F0EFE6; } .ds-btn-secondary:hover { border-color: #D5E998; } .ds-btn-secondary:focus-visible { border: 2px solid #F0EFE6; outline: none; } .ds-btn-secondary:disabled { opacity: 0.4; cursor: default; }"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Dark-theme search field with muted placeholder, accent caret, and selected-text fill.",
+      "html": "<input class=\"ds-input\" aria-label=\"Find a mod or hero\" placeholder=\"Find a mod or hero\" />",
+      "css": ".ds-input { box-sizing: border-box; min-height: 40px; width: 100%; padding: 10px; border: 1px solid #485A4E; border-radius: 4px; background: #101613; color: #F0EFE6; font: 14px 'Segoe UI', sans-serif; caret-color: #D5E998; } .ds-input::placeholder { color: #B8C3B9; opacity: 1; } .ds-input:focus-visible { border-color: #F0EFE6; outline: none; } .ds-input::selection { background: #303D2D; color: #F0EFE6; }"
+    },
+    {
+      "name": "Catalog Selector",
+      "kind": "input",
+      "refersTo": "select",
+      "description": "Self-contained browser preview of the native WPF combo box; browser popup behavior is illustrative.",
+      "html": "<label class=\"ds-select-wrap\"><select class=\"ds-select\" aria-label=\"Catalog source\"><option>GameBanana</option><option>Deadlocker</option><option>DeadlockMods</option></select><svg class=\"ds-select-arrow\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"m4 6 4 4 4-4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/></svg></label>",
+      "css": ".ds-select-wrap { position: relative; display: inline-block; min-width: 160px; } .ds-select { box-sizing: border-box; width: 100%; min-height: 40px; padding: 8px 28px 8px 10px; border: 1px solid #485A4E; border-radius: 4px; appearance: none; background: #101613; color: #F0EFE6; font: 14px 'Segoe UI', sans-serif; } .ds-select:focus-visible { border-color: #F0EFE6; outline: none; } .ds-select:disabled { opacity: 0.4; } .ds-select-arrow { position: absolute; pointer-events: none; right: 10px; top: 15px; width: 10px; height: 10px; color: #B8C3B9; } .ds-select option { background: #1E2623; color: #F0EFE6; }"
+    },
+    {
+      "name": "Catalog Row",
+      "kind": "custom",
+      "refersTo": "catalog-row",
+      "description": "A name and metadata row. Selection, hover, and keyboard focus reproduce the current WPF boundary vocabulary.",
+      "html": "<button class=\"ds-row\" aria-pressed=\"false\"><span class=\"ds-row-title\">Mod name</span><span class=\"ds-row-meta\">Category / Author</span></button>",
+      "css": ".ds-row { box-sizing: border-box; display: block; width: 100%; padding: 12px; margin-bottom: 8px; border: 1px solid #485A4E; border-radius: 4px; background: #1E2623; color: #F0EFE6; text-align: left; font-family: 'Segoe UI', sans-serif; cursor: pointer; } .ds-row-title { display: block; font-size: 16px; font-weight: 600; } .ds-row-meta { display: block; margin-top: 6px; color: #B8C3B9; font-size: 12px; } .ds-row[aria-pressed='true'] { background: #303D2D; border-color: #D5E998; } .ds-row:hover { border-color: #809070; } .ds-row:focus-visible { border-color: #F0EFE6; outline: none; }"
+    },
+    {
+      "name": "Game Status Band",
+      "kind": "custom",
+      "refersTo": "game-status",
+      "description": "Persistent game/index context. Text is an illustrative state, not a detected installation or verified result.",
+      "html": "<div class=\"ds-status\"><div class=\"ds-status-title\">Game state</div><div class=\"ds-status-meta\">Catalog index status</div><div class=\"ds-status-path\">Selected game folder</div></div>",
+      "css": ".ds-status { padding: 12px 16px; border-radius: 4px; background: #1E2623; color: #F0EFE6; font: 14px 'Segoe UI', sans-serif; } .ds-status-title { font-weight: 600; } .ds-status-meta, .ds-status-path { margin-top: 4px; color: #B8C3B9; font-size: 12px; } .ds-status-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }"
+    },
+    {
+      "name": "Workspace Navigation",
+      "kind": "nav",
+      "refersTo": "button-primary",
+      "description": "Native button navigation with a primary style for the active page across all five destinations. The preview shows Catalog active.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Workspace\"><button class=\"ds-nav-button ds-nav-active\" aria-current=\"page\">Catalog</button><button class=\"ds-nav-button\">Library</button><button class=\"ds-nav-button\">Favorites</button><button class=\"ds-nav-button\">Downloads</button><button class=\"ds-nav-button\">Profiles</button></nav>",
+      "css": ".ds-nav { display: flex; flex-wrap: wrap; gap: 8px; } .ds-nav-button { box-sizing: border-box; min-height: 40px; padding: 10px 16px; border: 1px solid #485A4E; border-radius: 4px; background: #1E2623; color: #F0EFE6; font: 14px 'Segoe UI', sans-serif; cursor: pointer; } .ds-nav-active { background: #D5E998; color: #172119; font-weight: 600; } .ds-nav-button:hover { border-color: #D5E998; } .ds-nav-button:focus-visible { border: 2px solid #F0EFE6; outline: none; } .ds-nav-button:disabled { opacity: 0.4; }"
+    },
+    {
+      "name": "Detail Panel",
+      "kind": "custom",
+      "refersTo": "detail-panel",
+      "description": "Selected-item context; preview content is illustrative. Actual native pane scrolls and contains actionable variants and requirements.",
+      "html": "<section class=\"ds-detail\"><h2 class=\"ds-detail-title\">Selected mod</h2><p class=\"ds-detail-meta\">Author and category</p><p class=\"ds-detail-body\">The selected mod description and installation instructions appear here.</p></section>",
+      "css": ".ds-detail { box-sizing: border-box; width: 380px; max-width: 100%; padding: 20px; border: 1px solid #485A4E; border-radius: 4px; background: #1E2623; color: #F0EFE6; font: 14px 'Segoe UI', sans-serif; } .ds-detail-title { margin: 12px 0 8px; font-size: 24px; font-weight: 600; } .ds-detail-meta { margin: 0 0 16px; color: #B8C3B9; } .ds-detail-body { margin: 0 0 16px; line-height: 21px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Mod Workbench",
+    "overview": "An extracted native Windows utility, not a replacement identity. Moss-toned tonal layers and a restrained lime accent preserve scanability while a list/detail workspace keeps the selected mod in context. Segoe UI, fixed sizes, compact controls, native dialogs, visible keyboard focus, and direct bilingual copy serve the task. Frontmatter owns primitives. These browser snippets translate WPF controls at 96 DPI for inspection; they are not application implementation or claims of additional behavior.",
+    "keyCharacteristics": [
+      "Native Windows affordances",
+      "One Segoe UI family",
+      "Flat tonal layering",
+      "List/detail hierarchy",
+      "Light and dark themes",
+      "Russian and English"
+    ],
+    "rules": [
+      {
+        "name": "The Action Accent Rule",
+        "body": "Reserve the accent for actions, selection, and meaningful status; use neutrals for inactive rows and supporting text.",
+        "section": "colors"
+      },
+      {
+        "name": "The Task Type Rule",
+        "body": "Keep fixed desktop sizes and familiar UI typography.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Workspace Rule",
+        "body": "Use tones and thin boundaries; no authored resting shadows, glow, or decorative motion.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Use role-matched light/dark resources from the runtime palette.",
+      "Retain visible focus and clear bilingual actions.",
+      "Preserve list/detail context and visible game state.",
+      "Wrap long names and messages at the minimum window size.",
+      "Distinguish downloading, selection, pending changes, and application."
+    ],
+    "donts": [
+      "Do not add unsupported capabilities through copy.",
+      "Do not replace native behavior with unfamiliar web affordances.",
+      "Do not introduce decorative shadows, glass, motion, display fonts, or large pills.",
+      "Do not claim mobile layouts, continuous live OS-theme synchronization, or unimplemented navigation states."
+    ]
+  }
+}

@@ -1,0 +1,182 @@
+<Window x:Class="PocketDeadlock.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="{local:I18n Text='PocketDeadlock · Менеджер модов'}" Style="{StaticResource {x:Type Window}}" Width="1380" Height="900" MinWidth="1100" MinHeight="760" WindowStartupLocation="CenterScreen" AllowDrop="True" Drop="DropFiles" PreviewKeyDown="Shortcut" xmlns:local="clr-namespace:PocketDeadlock">
+  <Grid Margin="24">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Grid Margin="0,0,0,20">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <StackPanel>
+        <TextBlock Text="PocketDeadlock" FontSize="26" FontWeight="SemiBold" />
+        <TextBlock Text="{local:I18n Text='Моды, звуки и твои наборы'}" Foreground="{DynamicResource Muted}" FontSize="13" Margin="0,4,0,0" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+        <Button Content="{local:I18n Text='Настройки'}" Click="UpdateSettings" Margin="0,0,8,0" />
+        <Button Content="{local:I18n Text='Папка игры'}" Click="ChooseGame" Margin="0,0,8,0" />
+        <Button x:Name="LaunchButton" Content="{local:I18n Text='Запустить Deadlock'}" Click="Launch" Style="{StaticResource Primary}" />
+      </StackPanel>
+    </Grid>
+    <Border Grid.Row="1" Background="{DynamicResource Panel}" Padding="16,12" Margin="0,0,0,20" CornerRadius="4">
+      <StackPanel>
+        <TextBlock x:Name="GameStatus" FontWeight="SemiBold" />
+        <TextBlock x:Name="IndexStatus" Text="{local:I18n Text='Локальный индекс готов к поиску'}" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,4,0,0" />
+        <TextBlock x:Name="GamePathLabel" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
+      </StackPanel>
+    </Border>
+    <Grid Grid.Row="2" x:Name="Workspace">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="20" />
+        <ColumnDefinition Width="380" />
+      </Grid.ColumnDefinitions>
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <WrapPanel Margin="0,0,0,12">
+          <Button Content="{local:I18n Text='Каталог'}" Click="ShowCatalog" x:Name="CatalogTab" Style="{StaticResource Primary}" Margin="0,0,8,8" />
+          <Button Content="{local:I18n Text='Библиотека'}" Click="ShowLibrary" x:Name="LibraryTab" Margin="0,0,8,8" />
+          <Button x:Name="FavoritesTab" Content="{local:I18n Text='Избранное'}" Click="ShowFavorites" Margin="0,0,8,8" />
+          <Button x:Name="DownloadsTab" Content="{local:I18n Text='Загрузки'}" Click="ShowDownloads" Margin="0,0,8,8" />
+          <Button x:Name="ProfilesTab" Content="{local:I18n Text='Профили'}" Click="ShowProfiles" Margin="0,0,0,8" />
+        </WrapPanel>
+        <Grid Grid.Row="1" x:Name="SearchPanel" Margin="0,0,0,16">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <ComboBox x:Name="KindBox" SelectedIndex="0" SelectionChanged="KindChanged" AutomationProperties.Name="{local:I18n Text='Тип каталога'}">
+            <ComboBoxItem Content="{local:I18n Text='Моды'}" />
+            <ComboBoxItem Content="{local:I18n Text='Звуки'}" />
+          </ComboBox>
+          <TextBox x:Name="SearchBox" Tag="{local:I18n Text='Найти мод или героя'}" Grid.Column="1" Margin="8,0" KeyDown="SearchKey" ToolTip="{local:I18n Text='Имя героя или мода, либо ссылка GameBanana. Ctrl+F'}" AutomationProperties.Name="{local:I18n Text='Поиск по названию или ссылка GameBanana'}" />
+          <Button Grid.Column="2" Content="{local:I18n Text='Найти'}" Click="Search" />
+        </Grid>
+        <StackPanel Grid.Row="1" x:Name="LibraryActions" Visibility="Collapsed" Margin="0,0,0,12">
+          <WrapPanel>
+            <Button Content="{local:I18n Text='Импорт VPK / архива'}" Click="Import" Margin="0,0,8,8" />
+            <Button Content="{local:I18n Text='Обновить моды'}" Click="CheckUpdates" Margin="0,0,8,8" />
+            <Button Content="{local:I18n Text='Найти старые VPK'}" Click="ScanExisting" Margin="0,0,0,8" />
+          </WrapPanel>
+          <TextBox x:Name="LibrarySearch" Tag="{local:I18n Text='Поиск в библиотеке'}" TextChanged="FilterLibrary" ToolTip="{local:I18n Text='Поиск в библиотеке'}" AutomationProperties.Name="{local:I18n Text='Поиск в библиотеке'}" />
+        </StackPanel>
+        <WrapPanel Grid.Row="2" x:Name="FiltersPanel" Margin="0,0,0,12">
+          <ComboBox x:Name="SourcesBox" Width="160" Margin="0,0,8,0" SelectionChanged="SourceChanged" AutomationProperties.Name="{local:I18n Text='Источник каталога'}" />
+          <ComboBox x:Name="CategoryFilter" Width="175" Margin="0,0,8,0" SelectionChanged="FilterCatalog" AutomationProperties.Name="{local:I18n Text='Категория на странице'}" />
+          <ComboBox x:Name="SortBox" Width="170" SelectionChanged="FilterCatalog" AutomationProperties.Name="{local:I18n Text='Порядок на странице'}" />
+          <TextBlock Text="{local:I18n Text='Локальный индекс'}" Foreground="{DynamicResource Muted}" FontSize="11" VerticalAlignment="Center" Margin="8,0,0,0" />
+        </WrapPanel>
+        <Grid Grid.Row="3">
+          <ListBox x:Name="CatalogList" SelectionChanged="SelectedMod" AutomationProperties.Name="{local:I18n Text='Каталог модов'}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding Caption}" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap" />
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <ListBox x:Name="LibraryList" Visibility="Collapsed" SelectionChanged="SelectedLibraryMod" AutomationProperties.Name="{local:I18n Text='Локальная библиотека'}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}" Click="ToggleMod" ToolTip="{local:I18n Text='Включить в набор для применения'}" AutomationProperties.Name="{local:I18n Text='Использовать этот мод'}" />
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding Caption}" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock x:Name="EmptyLabel" Text="{local:I18n Text='Загружаем каталог…'}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="340" TextAlignment="Center" IsHitTestVisible="False" />
+          <ScrollViewer x:Name="FeatureScreen" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="FeatureContent" />
+          </ScrollViewer>
+        </Grid>
+        <Grid Grid.Row="4" Margin="0,12,0,0" x:Name="Paging">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Button Content="{local:I18n Text='Назад'}" x:Name="PreviousButton" Click="Previous" />
+          <TextBlock Grid.Column="1" x:Name="PageLabel" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource Muted}" />
+          <Button Grid.Column="2" Content="{local:I18n Text='Далее'}" x:Name="NextButton" Click="Next" />
+        </Grid>
+        <WrapPanel Grid.Row="4" x:Name="ApplyPanel" Visibility="Collapsed" Margin="0,12,0,0">
+          <Button x:Name="ApplyButton" Content="{local:I18n Text='Применить выбранные'}" Click="Apply" Style="{StaticResource Primary}" Margin="0,0,8,8" />
+          <Button x:Name="DisableButton" Content="{local:I18n Text='Отключить наши моды'}" Click="Disable" Margin="0,0,0,8" />
+        </WrapPanel>
+      </Grid>
+      <Border Grid.Column="2" Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="4">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="20">
+            <TextBlock x:Name="DetailTitle" Text="{local:I18n Text='Выбери мод в каталоге'}" FontSize="24" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,12,0,8" />
+            <TextBlock x:Name="DetailMeta" Text="{local:I18n Text='Скины, интерфейс и звуки из GameBanana.'}" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" Margin="0,0,0,16" />
+            <Image x:Name="PreviewImage" MaxHeight="200" Stretch="Uniform" HorizontalAlignment="Left" Margin="0,0,0,16" />
+            <TextBlock x:Name="FileLabel" Text="{local:I18n Text='Вариант загрузки'}" Visibility="Collapsed" Foreground="{DynamicResource Muted}" FontSize="12" Margin="0,0,0,8" />
+            <ComboBox x:Name="FilesBox" DisplayMemberPath="Label" Visibility="Collapsed" AutomationProperties.Name="{local:I18n Text='Файл мода'}" Margin="0,0,0,12" />
+            <StackPanel x:Name="DetailActions">
+              <Button x:Name="DownloadButton" Content="{local:I18n Text='Скачать в библиотеку'}" Click="Download" Style="{StaticResource Primary}" IsEnabled="False" Margin="0,0,0,8" />
+              <Button x:Name="SourceButton" Content="{local:I18n Text='Открыть страницу автора'}" Click="OpenSource" IsEnabled="False" Margin="0,0,0,8" />
+              <Button x:Name="FavoriteButton" Content="{local:I18n Text='В избранное'}" Click="ToggleFavorite" IsEnabled="False" Margin="0,0,0,8" />
+            </StackPanel>
+            <StackPanel x:Name="LibraryTools" Visibility="Collapsed" Margin="0,12,0,0">
+              <TextBlock Text="{local:I18n Text='Приоритет: чем выше мод, тем сильнее его ресурсы.'}" Foreground="{DynamicResource Muted}" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8" />
+              <WrapPanel>
+                <Button x:Name="HigherButton" Content="{local:I18n Text='Выше'}" Click="MoveHigher" Margin="0,0,8,8" />
+                <Button x:Name="LowerButton" Content="{local:I18n Text='Ниже'}" Click="MoveLower" Margin="0,0,0,8" />
+              </WrapPanel>
+              <CheckBox x:Name="OverridesBox" Click="LibraryOptionChanged" Margin="0,4,0,8">
+                <TextBlock Text="{local:I18n Text='Разрешить перекрывать другие моды'}" TextWrapping="Wrap" />
+              </CheckBox>
+              <CheckBox x:Name="ModAutoBox" Click="LibraryOptionChanged" Margin="0,0,0,12">
+                <TextBlock Text="{local:I18n Text='Обновлять этот мод автоматически'}" TextWrapping="Wrap" />
+              </CheckBox>
+              <Button Content="{local:I18n Text='Обновить выбранный вариант'}" Click="UpdateSelected" Margin="0,0,0,8" />
+              <Button x:Name="RollbackButton" Content="{local:I18n Text='Вернуть предыдущую версию'}" Click="RollbackSelected" Margin="0,0,0,8" />
+              <Button Content="{local:I18n Text='Убрать из библиотеки'}" Click="RemoveSelected" Margin="0,0,0,8" />
+            </StackPanel>
+            <TextBlock x:Name="RequirementsLabel" Foreground="{DynamicResource Accent}" TextWrapping="Wrap" Margin="0,12,0,12" />
+            <TextBlock x:Name="DetailText" Text="{local:I18n Text='Сначала скачай мод в библиотеку. Затем выбери, какие моды подключить к игре.'}" TextWrapping="Wrap" LineHeight="21" Margin="0,0,0,16" />
+            <StackPanel x:Name="FormatHelp">
+              <TextBlock Text="{local:I18n Text='Архивы: ZIP, RAR, 7Z · Файлы: VPK'}" FontSize="12" Foreground="{DynamicResource Muted}" Margin="0,16,0,4" TextWrapping="Wrap" />
+              <TextBlock Text="{local:I18n Text='Если мод требует дополнительные файлы или ручную настройку, следуй инструкции автора.'}" FontSize="12" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+    <Border Grid.Row="3" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,12,0,0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <ProgressBar x:Name="Progress" Height="3" Visibility="Collapsed" IsIndeterminate="True" Foreground="{DynamicResource Accent}" Margin="0,0,0,8" />
+          <TextBlock x:Name="StatusLabel" Text="{local:I18n Text='Готово'}" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxHeight="66" />
+        </StackPanel>
+        <Button Grid.Column="1" x:Name="AppUpdateButton" Content="{local:I18n Text='Установить обновление менеджера'}" Click="InstallAppUpdate" Visibility="Collapsed" Margin="12,0,0,0" />
+        <Button Grid.Column="2" x:Name="CancelButton" Content="{local:I18n Text='Отмена'}" Click="Cancel" Visibility="Collapsed" Margin="12,0,0,0" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

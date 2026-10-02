@@ -1,0 +1,12 @@
+bin/
+obj/
+publish/
+artifacts/
+*.pem
+*.pfx
+*.p12
+*.zip
+state.json
+preview-data/
+*.user
+*.log

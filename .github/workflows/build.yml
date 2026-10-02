@@ -1,0 +1,32 @@
+name: Windows build and checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore locked dependencies
+        run: dotnet restore DeadlockModManager.csproj --locked-mode
+      - name: Build
+        run: dotnet build DeadlockModManager.csproj -c Release --no-restore
+      - name: Verify isolated mod and update flows
+        shell: pwsh
+        run: |
+          $check = Start-Process -FilePath './bin/Release/net10.0-windows/PocketDeadlock.exe' -ArgumentList '--self-test','./artifacts/checks','--offline' -Wait -PassThru
+          if ($check.ExitCode -ne 0) { Get-Content './artifacts/checks/FAILURE.txt'; throw 'Checks failed' }
+          Get-Content './artifacts/checks/test-results.txt'
+      - name: Publish portable Windows package
+        run: dotnet publish DeadlockModManager.csproj -c Release -r win-x64 --self-contained true -o artifacts/PocketDeadlock
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PocketDeadlock-win-x64
+          path: artifacts/PocketDeadlock
