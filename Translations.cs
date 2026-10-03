@@ -63,6 +63,8 @@ PocketDeadlock · Менеджер модов|PocketDeadlock · Mod Manager
 Загрузок: |Downloads: 
 Скачиваний:|Downloads:
 Нравится:|Likes:
+Число скачиваний недоступно. Открой карточку для загрузки данных.|Download count unavailable. Open the card to load details.
+Число отметок «Нравится» недоступно. Открой карточку для загрузки данных.|Like count unavailable. Open the card to load details.
 Оценок: |Likes: 
 Оценки|Likes
 Фильтр страницы|Page filter

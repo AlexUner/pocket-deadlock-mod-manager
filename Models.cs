@@ -2,13 +2,16 @@ using System.Text.Json.Serialization;
 
 namespace PocketDeadlock;
 
-public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0,string Hero="",string ModType="",string ContentRatings="",string InitialVisibility="")
+public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0,string Hero="",string ModType="",string ContentRatings="",string InitialVisibility="",bool DownloadsKnown=false,bool LikesKnown=false)
 {
     public string Caption => CatalogTaxonomy.Caption(this);
-    [JsonIgnore] public string DownloadsDisplay => $"↓ {Math.Max(0,Downloads):N0}";
-    [JsonIgnore] public string LikesDisplay => $"★ {Math.Max(0,Likes):N0}";
-    [JsonIgnore] public string DownloadsHelp => L.T("Скачиваний:")+$" {Math.Max(0,Downloads):N0}";
-    [JsonIgnore] public string LikesHelp => L.T("Нравится:")+$" {Math.Max(0,Likes):N0}";
+    // Positive counts in older indexes remain usable without a cache migration.
+    [JsonIgnore] public bool HasDownloads => DownloadsKnown || Downloads>0;
+    [JsonIgnore] public bool HasLikes => LikesKnown || Likes>0;
+    [JsonIgnore] public string DownloadsDisplay => HasDownloads?$"↓ {Math.Max(0,Downloads):N0}":"↓ —";
+    [JsonIgnore] public string LikesDisplay => HasLikes?$"★ {Math.Max(0,Likes):N0}":"★ —";
+    [JsonIgnore] public string DownloadsHelp => HasDownloads?L.T("Скачиваний:")+$" {Math.Max(0,Downloads):N0}":L.T("Число скачиваний недоступно. Открой карточку для загрузки данных.");
+    [JsonIgnore] public string LikesHelp => HasLikes?L.T("Нравится:")+$" {Math.Max(0,Likes):N0}":L.T("Число отметок «Нравится» недоступно. Открой карточку для загрузки данных.");
     [JsonIgnore] public string Popularity => DownloadsDisplay+" · "+LikesDisplay;
 }
 public record RemoteFile(long Id, string Name, long Size, string Url, string Md5, bool Blocked, string Description="", long Added=0)
