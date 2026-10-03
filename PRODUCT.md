@@ -37,7 +37,9 @@ Manage the supported VPK workflow in one desktop tool: discover, download or imp
 - Transfer an enabled catalog-backed set with a `PD1-...` key and download missing variants. Keys and JSON profiles contain references and settings, not VPK content. Enabled local-only files must be transferred separately and cannot be included in a PD1 key.
 - Match updates to the chosen variant, retain previous revisions, and roll back. Ambiguous variants or changed archive choices require manual selection. Rollback disables automatic updating for that mod.
 - Apply a set through `game/citadel/pocket_mods` and a marked block in `gameinfo.gi`. Back up original configuration bytes before a change. Disable removes the manager's marked block.
-- Check the configured GitHub app-update feed, verify its ECDSA signature and package SHA256, stage a complete update, and install it when the manager closes.
+- Open Updates from the main header to see the installed version, last check, progress and retry details, and check the manager independently of mod updates. Check the configured GitHub app-update feed, verify its ECDSA signature and package SHA256, stage a complete update, and install it on normal close or with Install and restart.
+- Build portable releases with GitHub Actions, isolated offline checks, package validation, a signed feed and checksums. Tag pushes create draft releases; stable publication is explicit. Private signing credentials and user data are excluded from source and artifacts.
+- Use the PocketDeadlock icon in the Windows EXE and every application window, with native sizes from 16 to 256 pixels.
 - Follow Windows language and theme by default, with explicit Russian/English and light/dark preferences.
 
 ### Boundaries

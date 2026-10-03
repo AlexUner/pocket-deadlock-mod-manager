@@ -163,14 +163,7 @@ public partial class MainWindow : Window
         var fetched=item==null?await new GameBanana().Details(kind,id,token):await sources.Get(item.Provider).Details(item,token);
         if(generation!=detailGeneration) return;
         details=item==null?fetched:fetched with {Item=fetched.Item with {Hero=item.Hero,ModType=item.ModType}};
-        DetailTitle.Text=details.Item.Name; DetailMeta.Text=details.Item.Caption; DetailText.Text=details.Description;
-        if(details.Item.ContentRatings!="") DetailMeta.Text+="\n"+L.T(details.Item.ContentRatings);
-        RequirementsLabel.Text=details.Requirements.Length>0?L.T("Требования автора: ")+details.Requirements:"";
-        sourceUrl=details.Item.Url; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
-        DetailMeta.Text+=L.T($"\nЗагрузок: {details.Item.Downloads} · Оценок: {details.Item.Likes}");RefreshFavorite();
-        FilesBox.ItemsSource=details.Files; FilesBox.SelectedIndex=details.Files.Count==1?0:-1;
-        FilesBox.Visibility=FileLabel.Visibility=Visibility.Visible;
-        DownloadButton.Content=L.T("Скачать в библиотеку");RefreshDownloadVariant();
+        RenderRemoteDetail();
         if(details.Files.Count==0) StatusLabel.Text=L.T("Для этого мода нет прямых загрузок. Открой страницу автора.");
         else if(details.Files.Count>1) StatusLabel.Text=L.T("У мода несколько файлов. Выбери нужный вариант загрузки.");
         if(details.Item.Image!="")
@@ -182,6 +175,20 @@ public partial class MainWindow : Window
             catch(OperationCanceledException) { throw; }
             catch { /* A preview failure must not disable the mod's files. */ }
         }
+    }
+    void RenderRemoteDetail(RemoteFile? selectedFile=null)
+    {
+        if(details==null) return;
+        DetailTitle.Text=details.Item.Name; DetailMeta.Text=details.Item.Caption; DetailText.Text=details.Description;
+        if(details.Item.ContentRatings!="") DetailMeta.Text+="\n"+L.T(details.Item.ContentRatings);
+        RequirementsLabel.Text=details.Requirements.Length>0?L.T("Требования автора: ")+details.Requirements:"";
+        sourceUrl=details.Item.Url; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
+        DetailMeta.Text+=L.T($"\nЗагрузок: {details.Item.Downloads} · Оценок: {details.Item.Likes}");RefreshFavorite();
+        FilesBox.ItemsSource=details.Files;
+        if(selectedFile!=null && details.Files.Contains(selectedFile)) FilesBox.SelectedItem=selectedFile;
+        else FilesBox.SelectedIndex=details.Files.Count==1?0:-1;
+        FilesBox.Visibility=FileLabel.Visibility=Visibility.Visible;
+        DownloadButton.Content=L.T("Скачать в библиотеку");RefreshDownloadVariant();
     }
     void DownloadVariantChanged(object sender,SelectionChangedEventArgs e)=>RefreshDownloadVariant();
     void RefreshDownloadVariant()
@@ -205,7 +212,7 @@ public partial class MainWindow : Window
         RollbackButton.IsEnabled=mod.Revisions.Count>0;
         LibraryTools.Visibility=Visibility.Visible; OverridesBox.IsChecked=mod.AllowOverrides; ModAutoBox.IsChecked=mod.AutoUpdate;
         DetailMeta.Text=L.T("Локальная библиотека · ")+mod.Added;
-        DetailText.Text=L.T("VPK в наборе: ")+mod.Files.Count+L.T(".\nВариант: ")+(mod.VariantName==""?L.T("Определится при проверке обновлений"):mod.VariantName)+L.T("\nПредыдущих версий: ")+mod.Revisions.Count+"\n\n"+L.T(mod.UpdateStatus);
+        DetailText.Text=L.T("VPK в наборе: ")+mod.Files.Count+L.T(".\nВариант: ")+(mod.VariantName==""?L.T("Определится при проверке обновлений"):mod.VariantName)+L.T("\nПредыдущих версий: ")+mod.Revisions.Count+"\n\n"+L.UiStatus(mod.UpdateStatus);
         sourceUrl=mod.SourceUrl; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
         DownloadButton.Content=L.T("Посмотреть варианты"); DownloadButton.IsEnabled=mod.RemoteId>0;
     }

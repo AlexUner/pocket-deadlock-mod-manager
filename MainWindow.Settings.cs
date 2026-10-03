@@ -35,7 +35,7 @@ public partial class MainWindow
         var app=Check("Проверять и готовить обновления самого менеджера",storage.State.CheckAppUpdatesAutomatically);
         stack.Children.Add(new TextBlock {Text="PocketDeadlock "+AppUpdates.CurrentVersion.ToString(3)+" · "+ManagerUpdateStatus(),TextWrapping=TextWrapping.Wrap,Foreground=(System.Windows.Media.Brush)FindResource("Muted"),Margin=new Thickness(0,0,0,12)});
         var advanced=new StackPanel {Margin=new Thickness(0,12,0,0)};
-        stack.Children.Add(new Expander {Header=L.T("Дополнительно"),Content=advanced,Margin=new Thickness(0,8,0,16)});
+        stack.Children.Add(new Expander {Header=new TextBlock {Text=L.T("Дополнительно"),Foreground=(System.Windows.Media.Brush)FindResource("Ink")},Content=advanced,Foreground=(System.Windows.Media.Brush)FindResource("Ink"),Margin=new Thickness(0,8,0,16)});
         advanced.Children.Add(new TextBlock {Text=L.T("Адрес подписанного канала выпусков"),TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,8)});
         var feed=new TextBox {Text=storage.State.UpdateFeed,MinHeight=42};advanced.Children.Add(feed);System.Windows.Automation.AutomationProperties.SetName(feed,L.T("Адрес подписанного канала выпусков"));
         advanced.Children.Add(new TextBlock {Text=L.T("HTTPS-ссылка на update-feed.json или полный путь к локальному файлу. Пакеты проверяются по подписи и SHA256, устанавливаются после закрытия приложения."),TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,16),Foreground=(System.Windows.Media.Brush)FindResource("Muted")});

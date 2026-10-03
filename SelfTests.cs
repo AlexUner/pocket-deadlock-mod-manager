@@ -89,7 +89,10 @@ internal static partial class SelfTests
         ConflictDocumentationTests(run,Assert,Fails);
         await UpdateTests(run,Assert,Fails);
         L.Set("en");Assert(L.T("Игра запущена - изменения ожидают применения. Можно скачивать и выбирать моды.")=="Game is running. Changes are pending; downloading and choosing mods is available.","English running-game protection label is fully localized");
+        Assert(L.UiStatus("Скачано: skin.zip")=="Downloaded: skin.zip","saved Russian download status renders in English without changing the file name");
         L.Set("ru");Assert(L.T("Настройки")=="Настройки","Russian interface preserves native text");
+        Assert(L.UiStatus("Downloaded: skin.zip")=="Скачано: skin.zip","saved English download status renders in Russian after changing language");
+        Assert(L.UiStatus("Latest version installed: 0.6.2")=="Установлена последняя версия 0.6.2","manager update status preserves its version when relocalized");
         var profiles=new Profiles(storage); var profile=profiles.Capture("Test profile");mod.Enabled=false;duplicate.Enabled=true;
         int missing=profiles.Select(profile);Assert(missing==0 && mod.Enabled && !duplicate.Enabled && storage.State.PendingApply,"profile restores selection and leaves game application pending");
         string exported=Path.Combine(run,"profile.json");Profiles.Export(profile,exported);var imported=profiles.Import(exported);

@@ -36,7 +36,7 @@ public sealed class LibraryMod
     public string Added { get; set; } = DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm");
     public string UpdateStatus { get; set; } = "";
     public RemoteFile? AvailableUpdate { get; set; }
-    [JsonIgnore] public string Caption => $"{Files.Count} VPK · {Added} · {L.T(UpdateStatus)}";
+    [JsonIgnore] public string Caption => $"{Files.Count} VPK · {Added} · {L.UiStatus(UpdateStatus)}";
 }
 public sealed class AppState
 {

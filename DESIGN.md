@@ -169,7 +169,7 @@ The detail description has a fixed line height (21px). Current local exceptions 
 
 The main window starts at 1380 x 900 device-independent units and has a minimum size of 1100 x 760. WPF units map to CSS pixels at 96 DPI; Windows scales the window at higher DPI.
 
-The outer inset is `window`. A header contains the product name and settings/game/launch actions. A full-width status band identifies the game and index state. The workspace has a flexible catalog area, a `pane` gap, and a fixed detail width (380 units). Catalog and Favorites use cover tiles; the library uses native rows for checkbox selection and reordering. Detail content scrolls vertically with `pane` padding. There is no mobile breakpoint or automatic single-column collapse.
+The outer inset is `window`. A header contains the product name, installed version, Updates and account/settings/game/launch actions. Header actions wrap as the available width shrinks. A full-width status band identifies the game and index state. The workspace has a flexible catalog area, a `pane` gap, and a fixed detail width (380 units). Catalog and Favorites use cover tiles; the library uses native rows for checkbox selection and reordering. Detail content scrolls vertically with `pane` padding. There is no mobile breakpoint or automatic single-column collapse.
 
 Navigation precedes search, filters, the continuous virtualized feed, and a result count or library apply controls. There are no page buttons. Navigation and filter groups wrap when needed. Feature pages reuse the list area and detail context. The footer holds progress, a wrapping status message, cancellation, and a staged-update action.
 
@@ -218,6 +218,10 @@ The status band holds running/applied state, index status, and game path. The de
 ### Dialogs
 
 Use native file/folder selection and owner windows for settings and VPK choices. Preserve focus and predictable closing. Routine catalog and library navigation stays in the workspace.
+
+The Updates owner window keeps status, last-check date, progress, details and release notes in scrollable content above fixed Check now, Install and restart and Close actions. The Settings owner window groups interface preferences, mod behavior and manager updates; advanced feed and storage controls stay in an expander. Its Save, Save and check now and Cancel actions remain outside the scrolling content. Escape closes either dialog. Root documentation conflicts, empty searches and unavailable variants use explicit text.
+
+The Windows application icon uses the moss canvas and lime pocket/P geometry in transparent ICO frames from 16 to 256 pixels. Embed it in the EXE and the shared Window style; preserve native title bars and taskbar behavior. `assets/app-icon.svg` is the editable master, and `assets/app-icon.png` is the larger brand export.
 
 ## Do's and Don'ts
 

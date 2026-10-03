@@ -14,10 +14,18 @@ public static class L
     public static string Language {get;private set;}=SystemLanguage;
     static readonly Dictionary<string,string> resources=[];
     static readonly (string Ru,string En)[] Pairs=Translations.Data.Split('\n',StringSplitOptions.RemoveEmptyEntries).Select(x=>x.TrimEnd('\r').Split('|',2)).Where(x=>x.Length==2).Select(x=>(x[0],x[1])).OrderByDescending(x=>x.Item1.Length).ToArray();
+    static readonly (string Ru,string En)[] EnglishPairs=Pairs.OrderByDescending(x=>x.En.Length).ToArray();
     public static string T(string text)
     {
         if(Language=="ru") return text;
         foreach(var (ru,en) in Pairs) text=text.Replace(ru,en,StringComparison.Ordinal);
+        return text;
+    }
+    // Only manager-authored status text can be stored in either interface language.
+    public static string UiStatus(string text)
+    {
+        if(Language!="ru") return T(text);
+        foreach(var (ru,en) in EnglishPairs) text=text.Replace(en,ru,StringComparison.Ordinal);
         return text;
     }
     public static void Set(string preference)
@@ -47,7 +55,7 @@ public sealed class I18nExtension : MarkupExtension
     public override object ProvideValue(IServiceProvider provider)
     {
         var target=(IProvideValueTarget?)provider.GetService(typeof(IProvideValueTarget));
-        if(target?.TargetProperty is not DependencyProperty property || property.Name=="Name") return L.T(Text);
+        if(target?.TargetProperty is not DependencyProperty property || property.Name=="Name" && property!=System.Windows.Automation.AutomationProperties.NameProperty) return L.T(Text);
         return new DynamicResourceExtension(L.Resource(Text)).ProvideValue(provider);
     }
 }

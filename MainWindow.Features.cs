@@ -126,7 +126,7 @@ public partial class MainWindow
         foreach(var row in transfers) AddTransferRow(row);
         RefreshTransferActions();
         FeatureContent.Children.Add(new TextBlock {Text=L.T("История операций"),FontSize=20,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,24,0,8)});
-        foreach(var row in storage.State.Activity.AsEnumerable().Reverse().Take(100)) FeatureContent.Children.Add(new TextBlock {Text=row.Time+" · "+row.Name+"\n"+L.T(row.Status),TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,14)});
+        foreach(var row in storage.State.Activity.AsEnumerable().Reverse().Take(100)) FeatureContent.Children.Add(new TextBlock {Text=row.Time+" · "+row.Name+"\n"+L.UiStatus(row.Status),TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,14)});
     }
     void AddTransferRow(TransferItem row)
     {
@@ -287,8 +287,12 @@ public partial class MainWindow
     }
     void ReloadLocale()
     {
+        var retainedDetail=details;var selectedFile=FilesBox.SelectedItem as RemoteFile;
+        string status=L.UiStatus(StatusLabel.Text),indexStatus=L.UiStatus(IndexStatus.Text);
         DisplayCatalog(catalogRows,true);RefreshGame();RefreshAccount();RefreshManagerUpdateUi();if(library) RefreshLibrary();
         if(FeatureScreen.Visibility==Visibility.Visible) {if(featureId=="profiles") ShowProfiles(this,new RoutedEventArgs());else ShowDownloads(this,new RoutedEventArgs());}
         else if(library && LibraryList.SelectedItem!=null) SelectedLibraryMod(this,null!);
+        else if(!library && retainedDetail!=null) {details=retainedDetail;RenderRemoteDetail(selectedFile);}
+        StatusLabel.Text=status;IndexStatus.Text=indexStatus;
     }
 }
