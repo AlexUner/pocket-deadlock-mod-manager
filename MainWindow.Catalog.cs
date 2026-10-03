@@ -20,14 +20,14 @@ public partial class MainWindow
     void UpdateCategoryOptions()
     {
         var favorites=favoritesView?UnifiedCatalog.Merge(catalogRows):null;
-        availableHeroes=favorites!=null?CatalogTaxonomy.HeroFilters(favorites,""):sources.HeroFilters(activeKind);
+        availableHeroes=favorites!=null?CatalogTaxonomy.HeroFilters(favorites.Where(x=>CatalogContent.Matches(x.Item,contentFilter,App.Account?.SignedIn==true)),""):sources.HeroFilters(activeKind,contentFilter);
         if(selectedHero!="" && !availableHeroes.Any(x=>x.Value==selectedHero)) selectedHero="";
         string typeHero=selectedHero==""?CatalogTaxonomy.Search(activeSearch).Hero:selectedHero;
-        availableTypes=favorites!=null?CatalogTaxonomy.TypeFilters(favorites.Where(x=>typeHero=="" || (typeHero=="__general"?x.Heroes.Count==0:x.Heroes.Contains(typeHero))),""):sources.TypeFilters(activeKind,typeHero);
+        availableTypes=favorites!=null?CatalogTaxonomy.TypeFilters(favorites.Where(x=>CatalogContent.Matches(x.Item,contentFilter,App.Account?.SignedIn==true) && (typeHero=="" || (typeHero=="__general"?x.Heroes.Count==0:x.Heroes.Contains(typeHero)))),""):sources.TypeFilters(activeKind,typeHero,contentFilter);
         if(selectedCategory!="" && !availableTypes.Any(x=>x.Value==selectedCategory)) selectedCategory="";
         HeroButtonLabel.Text=availableHeroes.FirstOrDefault(x=>x.Value==selectedHero)?.Name??L.T("Все герои");
         CategoryButtonLabel.Text=availableTypes.FirstOrDefault(x=>x.Value==selectedCategory)?.Name??L.T("Все типы модов");
-        ResetFiltersButton.Visibility=selectedHero!="" || selectedCategory!=""?Visibility.Visible:Visibility.Collapsed;
+        ResetFiltersButton.Visibility=selectedHero!="" || selectedCategory!="" || contentFilter!="all"?Visibility.Visible:Visibility.Collapsed;
         FilterCategoryOptions();
     }
     void FilterCategoryOptions()
@@ -65,7 +65,7 @@ public partial class MainWindow
         await ApplyCatalogFilter();
     }
     async void ResetCatalogFilters(object sender,RoutedEventArgs e)=>await ResetFilters();
-    async Task ResetFilters() {selectedHero=selectedCategory="";UpdateCategoryOptions();await ApplyCatalogFilter();}
+    async Task ResetFilters() {selectedHero=selectedCategory="";settingFilters=true;ContentFilterBox.SelectedIndex=0;contentFilter="all";settingFilters=false;UpdateCategoryOptions();await ApplyCatalogFilter();}
     async void PickCategory(object sender,MouseButtonEventArgs e)
     {
         if(ItemsControl.ContainerFromElement(CategoryList,e.OriginalSource as DependencyObject) is ListBoxItem row && row.DataContext is CatalogFilter choice)
@@ -97,6 +97,7 @@ public partial class MainWindow
         foreach(MenuItem item in SortButton.ContextMenu.Items) item.IsChecked=item==chosen;
         await ApplyCatalogFilter();
     }
+#if DIAGNOSTICS
     async Task<string> ReviewCatalogControls(string preview)
     {
         OpenFilter(true);await Dispatcher.InvokeAsync(()=>{},DispatcherPriority.ContextIdle);
@@ -133,4 +134,5 @@ public partial class MainWindow
         var bitmap=new RenderTargetBitmap(Math.Max(1,(int)Math.Ceiling(size.Right)),Math.Max(1,(int)Math.Ceiling(size.Bottom)),96,96,PixelFormats.Pbgra32);bitmap.Render(control);
         var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using var stream=File.Create(path);encoder.Save(stream);
     }
+#endif
 }

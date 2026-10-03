@@ -18,20 +18,33 @@ public interface IModCatalog
 
 public sealed class GameBanana : IModCatalog
 {
-    static readonly HttpClient Http = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromMinutes(10) };
+    public const string DefaultUserAgent="PocketDeadlock/0.6";
+    static readonly HttpClient Http = new(new HttpClientHandler { AllowAutoRedirect = false,UseCookies=false }) { Timeout = TimeSpan.FromMinutes(10) };
     const string Api = "https://gamebanana.com/apiv11/";
     public static bool TrustedUrl(string value)
         => Uri.TryCreate(value, UriKind.Absolute, out var u) && u.Scheme == "https" && u.IsDefaultPort && string.IsNullOrEmpty(u.UserInfo)
         && (u.Host.Equals("gamebanana.com", StringComparison.OrdinalIgnoreCase) || u.Host.EndsWith(".gamebanana.com", StringComparison.OrdinalIgnoreCase));
 
+    internal static HttpRequestMessage GetRequest(string url,GameBananaAccount? account)
+    {
+        if(!TrustedUrl(url)) throw new IOException("Источник загрузки не принадлежит GameBanana.");
+        var request=new HttpRequestMessage(HttpMethod.Get,url);
+        request.Headers.UserAgent.ParseAdd(account?.UserAgent(url)??DefaultUserAgent);
+        string cookie=account?.Header(url)??"";
+        if(cookie!="")
+        {
+            request.Headers.TryAddWithoutValidation("Cookie",cookie);
+            request.Headers.CacheControl=new System.Net.Http.Headers.CacheControlHeaderValue{NoCache=true};
+        }
+        return request;
+    }
     public static async Task<HttpResponseMessage> Get(string url, CancellationToken token)
     {
         for (int i = 0; i < 6; i++)
         {
-            if (!TrustedUrl(url)) throw new IOException("Источник загрузки не принадлежит GameBanana.");
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.UserAgent.ParseAdd("PocketDeadlock/0.2");
+            using var request=GetRequest(url,App.Account);
             var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+            if(response.Headers.TryGetValues("Set-Cookie",out var changed)) App.Account?.Accept(url,changed);
             if ((int)response.StatusCode is >= 300 and < 400)
             {
                 var location = response.Headers.Location;
@@ -43,6 +56,7 @@ public sealed class GameBanana : IModCatalog
             if (!response.IsSuccessStatusCode)
             {
                 int status = (int)response.StatusCode; response.Dispose();
+                if(status is 401 or 403) throw new GameBananaLoginRequiredException();
                 throw new IOException($"GameBanana: HTTP {status}. Попробуйте повторить запрос позже.");
             }
             return response;
@@ -72,7 +86,7 @@ public sealed class GameBanana : IModCatalog
         var records = Child(root, "_aRecords");
         if (records.ValueKind != JsonValueKind.Array) throw new IOException("GameBanana вернул неизвестный формат каталога.");
         var items = records.EnumerateArray().Where(x => Number(Child(x, "_aGame"), "_idRow") == 20948)
-            .Where(x => Text(x, "_sInitialVisibility") != "hide" && !Flag(x,"_bIsObsolete"))
+            .Where(x => !Flag(x,"_bIsObsolete"))
             .Select(x => Item(x, kind)).ToList();
         var meta = Child(root, "_aMetadata");
         return new(items, (int)Number(meta,"_nRecordCount"), Math.Max(1,(int)Number(meta,"_nPerpage")));
@@ -84,6 +98,7 @@ public sealed class GameBanana : IModCatalog
         var root = await Json($"{kind}/{id}/ProfilePage", token);
         if (Number(Child(root,"_aGame"),"_idRow") != 20948) throw new IOException("Этот мод предназначен для другой игры.");
         if (Flag(root,"_bIsTrashed") || Flag(root,"_bIsWithheld")) throw new IOException("Этот мод недоступен на GameBanana.");
+        if(Text(root,"_sInitialVisibility")=="hide" && (App.Account==null || !await App.Account.Verify(token))) throw new GameBananaLoginRequiredException();
         var files = Child(root,"_aFiles");
         var result = new List<RemoteFile>();
         if (files.ValueKind == JsonValueKind.Array)
@@ -144,8 +159,10 @@ public sealed class GameBanana : IModCatalog
         var category=Text(Child(x,"_aRootCategory"),"_sName");
         if(category=="") category=Text(Child(x,"_aCategory"),"_sName");
         var hero=Text(Child(x,"_aSubCategory"),"_sName");
+        var ratings=Child(x,"_aContentRatings");
+        string content=ratings.ValueKind==JsonValueKind.Object?string.Join(", ",ratings.EnumerateObject().Where(p=>p.Value.ValueKind==JsonValueKind.String).Select(p=>p.Value.GetString())):Flag(x,"_bHasContentRatings")?"Sensitive content":"";
         return new(Number(x,"_idRow"),kind,Text(x,"_sName"),Text(Child(x,"_aSubmitter"),"_sName"),
-            category+(hero=="" ? "" : " · "+hero),image,Text(x,"_sProfileUrl"),Number(x,"_tsDateModified"),Downloads:Number(x,"_nDownloadCount"),Likes:Number(x,"_nLikeCount"),Hero:CatalogTaxonomy.ResolveHero(hero)==""?CatalogTaxonomy.ResolveHero(category):CatalogTaxonomy.ResolveHero(hero),ModType:category);
+            category+(hero=="" ? "" : " · "+hero),image,Text(x,"_sProfileUrl"),Number(x,"_tsDateModified"),Downloads:Number(x,"_nDownloadCount"),Likes:Number(x,"_nLikeCount"),Hero:CatalogTaxonomy.ResolveHero(hero)==""?CatalogTaxonomy.ResolveHero(category):CatalogTaxonomy.ResolveHero(hero),ModType:category,ContentRatings:content,InitialVisibility:Text(x,"_sInitialVisibility"));
     }
     internal static JsonElement Child(JsonElement x,string key) => x.ValueKind==JsonValueKind.Object && x.TryGetProperty(key,out var v) ? v : default;
     internal static string Text(JsonElement x,string key) => Child(x,key).ValueKind==JsonValueKind.String ? Child(x,key).GetString()! : "";

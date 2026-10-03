@@ -1,0 +1,92 @@
+name: Windows release
+on:
+  push:
+    tags: ['v[0-9]*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing stable tag, for example v0.6.1'
+        required: true
+        type: string
+      publish:
+        description: 'Publish the verified release to users (otherwise create a draft)'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: windows-latest
+    environment: releases
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Validate tag and configured signing key
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+          SIGNING_PRIVATE_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$') { throw 'Use a stable vMAJOR.MINOR.PATCH tag' }
+          [xml]$project = Get-Content -LiteralPath './DeadlockModManager.csproj' -Raw
+          $version = [string]($project.Project.PropertyGroup | Where-Object { $_.Version } | Select-Object -First 1).Version
+          if ($env:RELEASE_TAG -ne "v$version") { throw 'The tag does not match the project version' }
+          if ([string]::IsNullOrWhiteSpace($env:SIGNING_PRIVATE_KEY)) { throw 'Configure RELEASE_SIGNING_KEY in the releases environment before releasing' }
+          "RELEASE_VERSION=$version" >> $env:GITHUB_ENV
+          "RELEASE_TAG=$($env:RELEASE_TAG)" >> $env:GITHUB_ENV
+      - name: Restore locked dependencies
+        run: dotnet restore DeadlockModManager.csproj --locked-mode
+      - name: Build isolated developer checks
+        run: dotnet build DeadlockModManager.csproj -c Release -p:PocketDiagnostics=true --no-restore -o artifacts/diagnostics
+      - name: Verify isolated mod and update flows
+        shell: pwsh
+        run: |
+          $check = Start-Process -FilePath './artifacts/diagnostics/PocketDeadlock.exe' -ArgumentList '--self-test','./artifacts/checks','--offline' -Wait -PassThru
+          if ($check.ExitCode -ne 0) { Get-Content './artifacts/checks/FAILURE.txt'; throw 'Checks failed' }
+          Get-Content './artifacts/checks/test-results.txt'
+      - name: Publish ordinary portable runtime
+        run: dotnet publish DeadlockModManager.csproj -c Release -r win-x64 --self-contained true -p:DebugType=None -p:DebugSymbols=false -o artifacts/portable
+      - name: Package, verify and sign the update feed
+        shell: pwsh
+        env:
+          SIGNING_PRIVATE_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+        run: |
+          $package = "./artifacts/release/PocketDeadlock-$env:RELEASE_VERSION-win-x64.zip"
+          $notes = Get-Content -LiteralPath './RELEASE_NOTES.md' -Raw -Encoding UTF8
+          if ([string]::IsNullOrWhiteSpace($notes)) { throw 'Release notes must describe the version and known limitations' }
+          ./New-PortablePackage.ps1 -PublishFolder './artifacts/portable' -PackagePath $package
+          $privatePath = Join-Path $env:RUNNER_TEMP 'pocket-release-key.pem'
+          try {
+            [IO.File]::WriteAllText($privatePath,$env:SIGNING_PRIVATE_KEY,[Text.UTF8Encoding]::new($false))
+            $url = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:RELEASE_TAG/PocketDeadlock-$env:RELEASE_VERSION-win-x64.zip"
+            ./New-Release.ps1 -PackagePath $package -PackageUrl $url -PrivateKeyPath $privatePath -FeedPath './artifacts/release/update-feed.json' -Version $env:RELEASE_VERSION -ReleaseNotes $notes
+          } finally {
+            if (Test-Path -LiteralPath $privatePath) { Remove-Item -LiteralPath $privatePath }
+          }
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: PocketDeadlock-signed-release
+          path: artifacts/release
+      - name: Create draft release or publish explicitly
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH_RELEASE: ${{ github.event.inputs.publish || 'false' }}
+        run: |
+          $files = @(Get-ChildItem -LiteralPath './artifacts/release' -File | ForEach-Object { $_.FullName })
+          $arguments = @('release','create',$env:RELEASE_TAG,'--verify-tag','--title',"PocketDeadlock $env:RELEASE_VERSION",'--notes-file','./RELEASE_NOTES.md','--generate-notes')
+          if ($env:PUBLISH_RELEASE -ne 'true') { $arguments += '--draft' }
+          & gh @arguments @files
+          if ($LASTEXITCODE -ne 0) { throw 'Release creation failed; existing releases are not overwritten' }
+          "## PocketDeadlock $env:RELEASE_VERSION" >> $env:GITHUB_STEP_SUMMARY
+          "Package, SHA256SUMS.txt and signed update-feed.json were uploaded together." >> $env:GITHUB_STEP_SUMMARY
+          "The desktop updater follows published stable releases; draft releases are not installed." >> $env:GITHUB_STEP_SUMMARY

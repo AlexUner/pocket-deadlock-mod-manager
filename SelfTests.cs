@@ -86,9 +86,13 @@ internal static partial class SelfTests
         game.Disable(); Assert(File.ReadAllBytes(GameInstall.ConfigPath(root)).SequenceEqual(bom),"full apply-disable roundtrip preserves original BOM and CRLF");
         game.Disable(); Assert(!game.IsApplied(),"disable is idempotent");
         Assert(!GameBanana.TrustedUrl("https://gamebanana.com.evil.example/download") && !GameBanana.TrustedUrl("http://gamebanana.com/dl/1") && !GameBanana.TrustedUrl("https://gamebanana.com:8443/dl/1"),"reject untrusted download hosts and insecure URLs");
+        ConflictDocumentationTests(run,Assert,Fails);
         await UpdateTests(run,Assert,Fails);
         L.Set("en");Assert(L.T("Игра запущена - изменения ожидают применения. Можно скачивать и выбирать моды.")=="Game is running. Changes are pending; downloading and choosing mods is available.","English running-game protection label is fully localized");
+        Assert(L.UiStatus("Скачано: skin.zip")=="Downloaded: skin.zip","saved Russian download status renders in English without changing the file name");
         L.Set("ru");Assert(L.T("Настройки")=="Настройки","Russian interface preserves native text");
+        Assert(L.UiStatus("Downloaded: skin.zip")=="Скачано: skin.zip","saved English download status renders in Russian after changing language");
+        Assert(L.UiStatus("Latest version installed: 0.6.2")=="Установлена последняя версия 0.6.2","manager update status preserves its version when relocalized");
         var profiles=new Profiles(storage); var profile=profiles.Capture("Test profile");mod.Enabled=false;duplicate.Enabled=true;
         int missing=profiles.Select(profile);Assert(missing==0 && mod.Enabled && !duplicate.Enabled && storage.State.PendingApply,"profile restores selection and leaves game application pending");
         string exported=Path.Combine(run,"profile.json");Profiles.Export(profile,exported);var imported=profiles.Import(exported);
@@ -110,6 +114,8 @@ internal static partial class SelfTests
         Assert(instant.Total==1 && instant.Items[0].Id==2,"catalog category filter uses the whole index");
         await UnifiedTests(run,Assert);
         await ThumbnailTests(run,Assert);
+        AccountTests(run,Assert,Fails);
+        await TemplateLocalizationTests(run,Assert);
         if(live)
         {
         var provider=new GameBanana();
@@ -183,6 +189,11 @@ internal static partial class SelfTests
         var cold=new HybridCatalogs(Path.Combine(run,"cold-unified-data"),false);
         page=await cold.QueryUnified("Mod","Haze",1,"",0,CancellationToken.None);
         assert(page.Total==0,"empty combined index returns immediately while startup refresh can populate it");
+        ((HybridCatalog)all.Sources["GameBanana"]).Merge(many);
+        var feed=await all.QueryUnified("Mod","",1,"",0,CancellationToken.None,perPage:int.MaxValue);
+        assert(feed.Items.Count==feed.Total && feed.Total>24 && feed.Items.Select(UnifiedCatalog.Identity).Distinct().Count()==feed.Total,"infinite catalog snapshot includes every unique result beyond the former first page");
+        var feedSearch=await all.QueryUnified("Mod","Paged",1,"",1,CancellationToken.None,perPage:int.MaxValue);
+        assert(feedSearch.Total==50 && feedSearch.Items.Count==50 && feedSearch.Items[0].Id==100 && feedSearch.Items[^1].Id==149,"infinite search retains filtering and stable sorting through its final result");
         HeroTests(assert);
     }
     static void HeroTests(Action<bool,string> assert)

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>PocketDeadlock</title>
+  <desc>A lime pocket with a cutout P on a moss square, with transparent outer corners.</desc>
+  <rect x="12" y="12" width="232" height="232" rx="44" fill="#151A19"/>
+  <path d="M48 50H208V145L193 176L128 210L63 176L48 145Z" fill="#D5E998"/>
+  <path d="M89 79H153Q169 79 169 95V118Q169 134 153 134H115V172H89Z" fill="#151A19"/>
+  <rect x="116" y="96" width="30" height="20" rx="5" fill="#D5E998"/>
+</svg>

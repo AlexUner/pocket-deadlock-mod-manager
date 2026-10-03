@@ -5,9 +5,12 @@ namespace PocketDeadlock;
 
 public partial class App : Application
 {
+#if DIAGNOSTICS
     internal static string PreviewMode="";
     internal static bool PreviewTileErrors;
+#endif
     internal static ThumbnailCache? Thumbnails;
+    internal static GameBananaAccount? Account;
     Mutex? instance;
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -19,6 +22,7 @@ public partial class App : Application
                 ShutdownMode=ShutdownMode.OnExplicitShutdown;
                 try { await AppUpdates.ApplyJob(Path.GetFullPath(e.Args[1])); Shutdown(0); } catch { Shutdown(1); } return;
             }
+#if DIAGNOSTICS
             if(e.Args.Length>=2 && e.Args[0]=="--self-test")
             {
                 ShutdownMode=ShutdownMode.OnExplicitShutdown;
@@ -34,6 +38,15 @@ public partial class App : Application
                 File.WriteAllText(Path.Combine(e.Args[2],"prepared.json"),System.Text.Json.JsonSerializer.Serialize(new {Job=job,Stage=stage}));Shutdown(0);return;
             }
             bool preview=e.Args.Length>=2 && e.Args[0]=="--preview";
+            if(preview) DispatcherUnhandledException+=(_,failure)=>
+            {
+                File.WriteAllText(e.Args[1]+".failure.txt",failure.Exception.ToString());failure.Handled=true;Shutdown(1);
+            };
+#else
+            if(e.Args.Any(x=>x is "--preview" or "--self-test" or "--prepare-update"))
+                throw new IOException("Diagnostics are available only in a developer build.");
+            bool preview=false;
+#endif
             if(!preview)
             {
                 instance=new Mutex(true,"Local\\PocketDeadlock-Manager",out bool first);
@@ -42,9 +55,12 @@ public partial class App : Application
             string root=preview?Path.Combine(Path.GetDirectoryName(Path.GetFullPath(e.Args[1]))!,"preview-data")
                 :Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"PocketDeadlock");
             var storage=new ModStorage(root);
+            Account=new GameBananaAccount(root);
             Thumbnails=new ThumbnailCache(Path.Combine(root,"thumbnails"));
-            if(preview) {if(e.Args.Contains("--en")) storage.State.Language="en";if(e.Args.Contains("--ru")) storage.State.Language="ru";if(e.Args.Contains("--light")) storage.State.Theme="light";if(e.Args.Contains("--dark")) storage.State.Theme="dark";PreviewMode=e.Args.FirstOrDefault(x=>x is "--library" or "--profiles" or "--downloads" or "--categories" or "--tiles")??"";}
+#if DIAGNOSTICS
+            if(preview) {if(e.Args.Contains("--en")) storage.State.Language="en";if(e.Args.Contains("--ru")) storage.State.Language="ru";if(e.Args.Contains("--light")) storage.State.Theme="light";if(e.Args.Contains("--dark")) storage.State.Theme="dark";PreviewMode=e.Args.FirstOrDefault(x=>x is "--library" or "--profiles" or "--downloads" or "--categories" or "--tiles" or "--account")??"";}
             PreviewTileErrors=preview && e.Args.Contains("--tile-errors");
+#endif
             L.Set(storage.State.Language);L.Theme(storage.State.Theme);
             if(!GameInstall.Valid(storage.State.GamePath)) { storage.State.GamePath=GameInstall.Detect(); storage.Save(); }
             var window=new MainWindow(storage,preview?Path.GetFullPath(e.Args[1]):null);
@@ -53,11 +69,15 @@ public partial class App : Application
         }
         catch(Exception ex)
         {
+#if DIAGNOSTICS
             if(e.Args.Length>=2 && e.Args[0]=="--self-test")
             {
                 Directory.CreateDirectory(e.Args[1]); File.WriteAllText(Path.Combine(e.Args[1],"FAILURE.txt"),ex.ToString());
             }
-            else MessageBox.Show(ex.Message,"PocketDeadlock",MessageBoxButton.OK,MessageBoxImage.Error);
+            else if(e.Args.Length>=2 && e.Args[0]=="--preview") File.WriteAllText(e.Args[1]+".failure.txt",ex.ToString());
+            else
+#endif
+                MessageBox.Show(ex.Message,"PocketDeadlock",MessageBoxButton.OK,MessageBoxImage.Error);
             Shutdown(1);
         }
     }

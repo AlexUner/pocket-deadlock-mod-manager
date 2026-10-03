@@ -1,8 +1,17 @@
 # PocketDeadlock - Deadlock Mod Manager for Windows
 
+<img src="assets/app-icon.png" width="64" height="64" alt="PocketDeadlock app icon" />
+
+[![Windows build](https://github.com/AlexUner/pocket-deadlock-mod-manager/actions/workflows/build.yml/badge.svg)](https://github.com/AlexUner/pocket-deadlock-mod-manager/actions/workflows/build.yml)
+[![Latest release](https://img.shields.io/github/v/release/AlexUner/pocket-deadlock-mod-manager)](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/AlexUner/pocket-deadlock-mod-manager/total)](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases)
+[![License](https://img.shields.io/github/license/AlexUner/pocket-deadlock-mod-manager)](LICENSE)
+
 A native Windows x64 tool for finding Deadlock mods, managing a local VPK library, and switching mod sets. Built with C# and WPF. Independent of Valve, GameBanana, Deadlocker, and DeadlockMods.
 
 [Download the latest release](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest) · [Русская инструкция](#русская-инструкция)
+
+The ordinary build excludes developer diagnostics and automatic image capture after a Kaspersky System Watcher detection in a developer UI-check process. The earlier detection has not been classified as a false positive. Version 0.6.3 fixes a library-opening localization crash found during the release check; 0.6.2 will remain a draft. Current file-scan and ordinary-run results, including whether a trust rule was active, are recorded in [verification status](Проверка.md). They do not guarantee antivirus acceptance on every machine or in every workflow.
 
 ![PocketDeadlock catalog, Russian dark interface](assets/catalog-ru.png)
 
@@ -19,13 +28,15 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 
 ## Features
 
-- **Cover tiles:** Catalog and Favorites show an adaptive image grid. Covers load near the viewport, with four simultaneous requests, shared memory/disk caching and a fallback when an image is unavailable. Click a tile for file variants and details; arrows move across rows and columns. Compact windows shrink the covers to keep names readable; full names are available in tooltips.
-- **One combined catalog:** GameBanana, Deadlocker, and DeadlockMods work behind the scenes. Origin IDs remove duplicate listings while retaining community-only mods. Hero/type filtering and sorting cover the combined index before pagination.
+- **Infinite cover feed:** Catalog, search and Favorites use an adaptive image grid without page buttons. The saved index exposes every matching result while the panel creates only visible tiles and two upcoming rows. Covers are prefetched with four simultaneous requests and memory/disk caching. A new search resets scrolling; background indexing retains the visible anchor. Details and file variants load on selection.
+- **Popularity at a glance:** tiles and mod details show download counts and a star with the source's likes count. The star is not a five-star review score. Tooltips and accessible labels identify both values.
+- **GameBanana account:** log in or sign up on the official website inside an embedded WebView2 window, then connect the account. The manager verifies the session with GameBanana, encrypts it for the current Windows user, and sends cookies only to the HTTPS GameBanana website. Passwords are entered on the website. Log out to remove the saved session. Filter All available, Regular content or Sensitive / NSFW independently of hero and mod type. Hidden entries require a connected account; access still depends on the source and account settings.
+- **One combined catalog:** GameBanana, Deadlocker, and DeadlockMods work behind the scenes. Origin IDs remove duplicate listings while retaining community-only mods. Hero/type/content filtering and sorting cover the entire combined index.
 - **Hero and mod-type filters:** choose a hero and independently choose skins/models, interface, effects, weapons, music, voices, or another type. Both pickers include search, counts, Down/Enter selection and Escape. Type counts follow the selected or searched hero; Reset clears both filters. Sorting is in the small **Sort** menu.
 - **Hero-aware local search:** `page`, `Paige` and `пейдж` recognize Paige, including mods whose title omits the hero. Russian names and common aliases are supported for the recognized hero roster. A saved disk index, background startup refresh and debounced search keep repeated queries local. Fresh GameBanana rows are merged, then filtered by indexed title, author, hero and type metadata; unrelated full-text hits cannot bypass relevance. Paste a GameBanana URL to open it directly.
 - **Local library:** import VPK, ZIP, RAR, or 7Z; drag files into the window; choose VPK files inside archives; copy selected old VPK files from the game's `addons` folder.
 - **Downloads and favorites:** two simultaneous transfers, cancellation, saved operation history, and local favorites.
-- **Priority and overlaps:** enable mods, reorder by dragging or Move up/Move down, and explicitly permit a higher-priority mod to override overlapping resources.
+- **Priority and overlaps:** enable mods, reorder by dragging or Move up/Move down, and explicitly permit a higher-priority mod to override overlapping game resources. Root README, LICENSE and similar documentation files do not cause conflicts; nested text files and configurations still do.
 - **Profiles:** save and switch sets; import/export JSON; copy a `PD1-...` key to restore a catalog-backed set on another computer, preserving order, variants, selected VPK paths, and override choices.
 - **Mod updates:** preserve the chosen variant, retain previous revisions, and roll back. Ambiguous replacements require manual selection; rollback disables that mod's automatic update option.
 - **Game integration:** detect Steam libraries, choose a folder, apply or disable the manager's set, and launch through Steam. Apply, Disable, and Launch are blocked while Deadlock is detected as running.
@@ -56,7 +67,15 @@ A key contains references and settings, not mod files or cloud storage. It inclu
 
 Checks run at startup and every 30 minutes while the manager is open, according to Settings. Global and per-mod options control automatic downloads. A mod update or rollback becomes pending game application. You can also check manually.
 
-The signed app-update feed uses [the latest GitHub release](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest). A newer verified package is prepared before installation. **Install manager update** closes the manager and requests a restart; closing normally also installs a staged update. The updater verifies the signed release and package again before replacing application files.
+The signed app-update feed uses [the latest GitHub release](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest). Open **Updates** beside the version to check the manager independently of mod updates. Its window shows the last check, progress, retry information and release notes. A newer verified package is prepared before installation. **Install and restart** closes and reopens the manager; closing normally also installs a staged update. The updater verifies the signed release and package again before replacing application files. Language changes re-render the update state from saved codes instead of retaining the old interface language.
+
+### GitHub release automation
+
+Pull requests and pushes to main run Windows compilation, isolated offline checks and ordinary package verification. The artifact is a portable ZIP with runtime and dependency licenses; developer diagnostics and owner data are rejected.
+
+The **Windows release** workflow accepts an existing stable `vMAJOR.MINOR.PATCH` tag matching the project version. A tag push creates a draft release. Manual dispatch can explicitly publish it. It runs the checks again, builds the ordinary runtime, packages it, signs `update-feed.json`, and uploads that feed, the ZIP and `SHA256SUMS.txt` together. Maintain `RELEASE_NOTES.md` before tagging: its text is included in both the release and the manager's update window. A published stable release becomes available to desktop clients through the existing latest-release feed; drafts do not.
+
+Before the first automatic signed release, configure the `RELEASE_SIGNING_KEY` secret in the GitHub **releases** environment with the existing ECDSA private key. It must match `UpdateKey.cs`; the script rejects another key. Never commit the private key. GitHub receives this credential only when the maintainer configures that secret. Manual workflows become available once their file is on the default branch. See [GitHub workflow instructions](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
 
 ## Game files and recovery
 
@@ -72,6 +91,8 @@ Local data is under `%LOCALAPPDATA%\PocketDeadlock`:
 | `mods` | Imported content and retained revisions |
 | `catalog-index` | Saved catalog metadata |
 | `thumbnails` | Decoded cover PNGs, reused after restart; bounded to 128 MiB and 30 days |
+| `gamebanana-session.dat` | Windows-encrypted GameBanana session, local to this Windows account |
+| `gamebanana-browser` | Separate WebView2 website profile; unrelated browser profiles are not used |
 | `backups` | Original `gameinfo.gi` bytes, named by SHA256 |
 | `staging`, `updates` | Temporary work and prepared app-update packages |
 
@@ -91,7 +112,7 @@ Prefer **Disable managed mods** to restoring an old configuration manually: Stea
 
 ## Build and test
 
-Build on Windows with the **.NET 10 SDK**. The project targets `net10.0-windows`, uses WPF, and pins SharpCompress in `packages.lock.json`. Run from this source directory:
+Build on Windows with the **.NET 10 SDK**. The project targets `net10.0-windows`, uses WPF, and pins SharpCompress and WebView2 in `packages.lock.json`. Account login uses the installed Microsoft Edge WebView2 Runtime. Run from this source directory:
 
 ```powershell
 dotnet restore -r win-x64 --locked-mode
@@ -99,11 +120,12 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 .\publish\PocketDeadlock.exe
 ```
 
-Use a dedicated scratch directory for self-tests:
+Developer checks are excluded from the ordinary build. Build them explicitly into a dedicated directory:
 
 ```powershell
-.\publish\PocketDeadlock.exe --self-test .\test-output --offline
-.\publish\PocketDeadlock.exe --self-test .\test-output
+dotnet build -c Release -p:PocketDiagnostics=true -o artifacts/diagnostics
+.\artifacts\diagnostics\PocketDeadlock.exe --self-test .\test-output --offline
+.\artifacts\diagnostics\PocketDeadlock.exe --self-test .\test-output
 ```
 
 Offline tests use synthetic game and catalog fixtures. The default run also exercises live services and needs network access. Each run creates its own subdirectory under the supplied target; `test-results.txt` is written at the target, and a failure writes `FAILURE.txt`. The runner does not apply to the detected real game. A passing runner does not establish live-game mod compatibility. See [Проверка.md](Проверка.md) for recorded results.
@@ -124,9 +146,10 @@ Offline tests use synthetic game and catalog fixtures. The default run also exer
 | `ModUpdates.cs` | Chosen-variant matching and library updates |
 | `AppUpdates.cs`, `UpdateKey.cs` | Signed releases, staging, application replacement; public verification key only |
 | `SelfTests.cs` | Synthetic and optional live-service checks |
+| `GameBananaAccount.cs`, `GameBananaLoginWindow.cs`, `MainWindow.Account.cs` | Official website login, encrypted session, cookie boundaries and content filter |
 | `ThumbnailCache.cs`, `CatalogThumbnail.cs`, `CatalogTilePanel.cs`, `MainWindow.Tiles.cs` | Lazy cover loading, shared cache, adaptive tiles and keyboard navigation |
 
-[PRODUCT.md](PRODUCT.md) records scope. [DESIGN.md](DESIGN.md) and [.impeccable/design.json](.impeccable/design.json) record the native visual system. Archive handling uses [SharpCompress](https://github.com/adamhathcock/sharpcompress) 0.50.4 under MIT; [its license notice](SharpCompress-LICENSE.txt) is included.
+[PRODUCT.md](PRODUCT.md) records scope. [DESIGN.md](DESIGN.md) and [.impeccable/design.json](.impeccable/design.json) record the native visual system. Archive handling uses [SharpCompress](https://github.com/adamhathcock/sharpcompress) 0.50.4 under MIT; [its license notice](SharpCompress-LICENSE.txt) is included. Embedded login uses Microsoft WebView2 1.0.4258.31; its license and notices are included.
 
 ## Русская инструкция
 
@@ -147,10 +170,11 @@ PocketDeadlock - менеджер модов Deadlock для Windows x64. Он �
 
 ### Основные возможности
 
-- Каталог и избранное отображаются плиткой с обложками. Число колонок зависит от ширины окна. Картинки загружаются рядом с видимой областью и сохраняются в кеше; недоступная обложка не мешает выбрать мод. Стрелки перемещают выбор по плиткам. В маленьком окне картинки уменьшаются, чтобы названия оставались видимыми; полное название есть в подсказке.
+- Каталог, поиск и избранное работают как бесконечная плиточная лента без переключения страниц. На экране создаются только видимые карточки и несколько следующих рядов. Картинки подгружаются заранее и сохраняются в кеше. Новый поиск возвращает к началу; фоновое индексирование сохраняет место просмотра. Описание и варианты скачивания открываются при выборе карточки.
+- **Войти GameBanana** открывает настоящий сайт в отдельном окне менеджера. Там можно зарегистрироваться, подтвердить почту и войти, затем нажать **Использовать этот аккаунт**. Вход проверяется на GameBanana и хранится с шифрованием Windows. В фильтре контента выбери **Все доступные**, **Обычный контент** или **С предупреждением / NSFW**. Настройки видимости контента можно изменить через меню аккаунта на сайте. Скрытые моды доступны после подключения аккаунта; конкретные ограничения источника сохраняются. **Выйти из аккаунта** удаляет сохраненный сеанс.
 - Один общий каталог: GameBanana, Deadlocker и DeadlockMods работают внутри программы. Совпадающие записи объединяются по идентификатору исходного мода; переключать базы не нужно. Сохраняются моды, звуки и уникальные записи сообществ.
 - **Все герои** и **Все типы модов** - отдельные фильтры с поиском. Можно выбрать Пейдж (Paige), затем скины, интерфейс или другой тип. Стрелка вниз и Enter выбирают пункт, Escape закрывает список, **Сбросить** очищает оба фильтра. Счетчики типов учитывают выбранного или найденного героя. Сортировка доступна в меню **Порядок**.
-- Поиск `page`, `Paige` и `пейдж` находит одного героя, включая моды без его имени в названии. Поддерживаются русские имена и распространенные варианты написания героев из списка. Индекс сохраняется на диске, обновляется в фоне и отвечает локально; новые записи GameBanana проходят ту же проверку соответствия. Фильтры и сортировка работают до деления на страницы.
+- Поиск `page`, `Paige` и `пейдж` находит одного героя, включая моды без его имени в названии. Поддерживаются русские имена и распространенные варианты написания героев из списка. Индекс сохраняется на диске, обновляется в фоне и отвечает локально; новые записи GameBanana проходят ту же проверку соответствия. Фильтры и сортировка охватывают все результаты.
 - Импорт VPK, ZIP, RAR и 7Z, перетаскивание файлов и выбор VPK внутри архива. **Найти старые VPK** копирует выбранные файлы из `addons` в библиотеку, сохраняя оригиналы.
 - Две одновременные загрузки, отмена, история операций и избранное.
 - Порядок модов, разрешение перекрытий, сохранение наборов в профили, обмен JSON и ключами PD1.
@@ -168,11 +192,13 @@ PocketDeadlock - менеджер модов Deadlock для Windows x64. Он �
 
 ### Обновления и восстановление
 
+Кнопка **Обновления** рядом с номером версии отдельно проверяет сам менеджер. В окне видны результат, время проверки, ход загрузки и действие **Установить и перезапустить**. При ошибке доступна повторная проверка. Кнопка **Обновить моды** в библиотеке проверяет только моды. Настройки сгруппированы по интерфейсу, модам и менеджеру; адрес подписанного канала находится в **Дополнительно**.
+
 Проверка запускается при открытии менеджера и каждые 30 минут, пока он открыт, согласно настройкам. Обновленные или восстановленные VPK нужно применить к игре. Автоматическую загрузку можно отключить глобально и для отдельного мода.
 
 Программа подключает копии из `Deadlock\game\citadel\pocket_mods` через собственный отмеченный блок в `gameinfo.gi`. **Отключить наши моды** удаляет его, сохраняя остальные настройки. Перед изменением исходные байты сохраняются в `%LOCALAPPDATA%\PocketDeadlock\backups`. В настройках можно открыть папки данных и резервных копий.
 
-Файлы в `addons` и подключения других менеджеров сохраняются. Проверка конфликтов охватывает выбранный набор PocketDeadlock. Удаление записи сохраняет ее содержимое для восстановления; отключение в игре произойдет при следующем применении. Повторное применение неизмененных файлов использует уже проверенные копии.
+Файлы в `addons` и подключения других менеджеров сохраняются. Проверка конфликтов охватывает выбранный набор PocketDeadlock. Корневые README, LICENSE, COPYING, CHANGELOG, AUTHORS и NOTICE без расширения или с расширением .txt, .md, .rst считаются документацией; одинаковые инструкции не мешают применять разные моды. Вложенные текстовые файлы, конфигурации, модели и материалы продолжают проверяться. Удаление записи сохраняет ее содержимое для восстановления; отключение в игре произойдет при следующем применении. Повторное применение неизмененных файлов использует уже проверенные копии.
 
 Для полного удаления закройте игру, отключите наши моды, закройте менеджер и удалите его папку, `%LOCALAPPDATA%\PocketDeadlock` и только `pocket_mods` внутри игры. Сохраните `addons` и остальные файлы игры. Для обычного отключения предпочтительнее штатная кнопка: старая резервная копия может не учитывать обновления Steam.
 
@@ -182,4 +208,4 @@ PocketDeadlock - менеджер модов Deadlock для Windows x64. Он �
 
 Редактора прицела, сборки VPK, плагинов и облачных профилей нет. Программа не связана с Valve и владельцами каталогов. Гарантии приема любой сборки антивирусом нет.
 
-Для сборки нужен **.NET SDK 10 на Windows**. Команды приведены в [Build and test](#build-and-test). `--self-test` использует отдельную искусственную папку игры; `--offline` отключает живые сетевые проверки. Результаты конкретной проверки находятся в [Проверка.md](Проверка.md).
+Для сборки нужен **.NET SDK 10 на Windows**. Команды приведены в [Build and test](#build-and-test). `--self-test` доступен только в отдельной сборке с `PocketDiagnostics=true` и использует искусственную папку игры; `--offline` отключает живые сетевые проверки. Результаты конкретной проверки находятся в [Проверка.md](Проверка.md).

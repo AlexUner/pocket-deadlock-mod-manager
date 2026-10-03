@@ -33,6 +33,7 @@ PocketDeadlock · Менеджер модов|PocketDeadlock · Mod Manager
 Моя библиотека|My library
 Избранное|Favorites
 Загрузки и история|Downloads and history
+Здесь появятся загрузки. Выбери мод в каталоге и нужный вариант файла.|Downloads will appear here. Choose a mod in the catalog and a file variant.
 Загрузки|Downloads
 Профили наборов|Loadout profiles
 Профили|Profiles
@@ -60,6 +61,8 @@ PocketDeadlock · Менеджер модов|PocketDeadlock · Mod Manager
 Последние обновления|Recently updated
 Название|Name
 Загрузок: |Downloads: 
+Скачиваний:|Downloads:
+Нравится:|Likes:
 Оценок: |Likes: 
 Оценки|Likes
 Фильтр страницы|Page filter
@@ -82,8 +85,43 @@ PocketDeadlock · Менеджер модов|PocketDeadlock · Mod Manager
 Загружаем каталог…|Loading catalog…
 Выбери мод в каталоге|Choose a mod in the catalog
 Выбери мод|Choose a mod
+Нажми на карточку, чтобы посмотреть описание и варианты скачивания.|Select a card to see its description and download options.
+Найдено:|Results:
+Войти GameBanana|Log in to GameBanana
+Аккаунт GameBanana|GameBanana account
+Войти|Log in
+Зарегистрироваться|Sign up
+Настройки контента|Content settings
+Сайт и настройки контента|Website and content settings
+Настройки видимости контента находятся в меню твоего аккаунта GameBanana.|Content visibility settings are in your GameBanana account menu.
+Выйти из аккаунта|Log out
+Использовать этот аккаунт|Use this account
+Фильтр контента|Content filter
+Все доступные|All available
+Обычный контент|Regular content
+С предупреждением / NSFW|Sensitive / NSFW
+Войди или зарегистрируйся на GameBanana. Пароль вводится на сайте.|Log in or sign up on GameBanana. Enter your password on the website.
+Сначала заверши вход на GameBanana.|Complete the GameBanana login first.
+GameBanana не передал сеанс входа. Повтори вход.|GameBanana did not provide a session. Log in again.
+Вход выполнен. Нажми «Использовать этот аккаунт», чтобы подключить его к менеджеру.|Logged in. Select Use this account to connect it to the manager.
+Вход удален из менеджера.|Login removed from the manager.
+Для входа нужен Microsoft Edge WebView2 Runtime.|Microsoft Edge WebView2 Runtime is required to log in.
+Установить WebView2|Install WebView2
+Не удалось открыть окно входа. Закрой его и повтори.|Unable to open the login window. Close it and try again.
+Не удалось сохранить вход. Повтори после загрузки страницы.|Unable to save the login. Try again after the page loads.
+Открой внешнюю ссылку в обычном браузере; здесь используется только GameBanana.|Open external links in your regular browser; this window is for GameBanana only.
+Подключи аккаунт и скачай мод из каталога менеджера.|Connect your account and download the mod from the manager catalog.
+Для этого мода нужен вход GameBanana. Нажми «Войти GameBanana» и проверь настройки контента аккаунта.|This mod requires a GameBanana login. Select Log in to GameBanana and check your account content settings.
+Для скрытых модов войди в GameBanana и проверь настройки контента аккаунта.|For hidden mods, log in to GameBanana and check your account content settings.
+Аккаунт подключен. Каталог учитывает доступ GameBanana; выбери нужный фильтр контента.|Account connected. The catalog uses your GameBanana access; select a content filter.
+GameBanana не подтвердил вход. Войди еще раз.|GameBanana did not confirm the login. Log in again.
+Не удалось прочитать параметры браузера. Закрой окно входа и открой его снова.|Unable to read browser settings. Close the sign-in window and open it again.
+Сайт выполнил вход, но менеджер не подтвердил сеанс. Нажми «Использовать этот аккаунт» еще раз; повторный ввод пароля не нужен.|The website signed you in, but the manager could not verify the session. Click Use this account again; you do not need to re-enter your password.
 Скины, интерфейс и звуки из GameBanana.|Skins, interface mods and sounds from GameBanana.
 Вариант загрузки|Download variant
+Выбери вариант для скачивания|Choose a variant to download
+Файл заблокирован источником|File blocked by the source
+В библиотеке ничего не найдено. Попробуй другое название или очисти поиск.|No library matches. Try another name or clear the search.
 Файл мода|Mod file
 Скачать в библиотеку|Download to library
 Открыть страницу автора|Open author's page
@@ -269,6 +307,7 @@ VPK был изменен после установки: |VPK was modified after
 Копия мода в игре изменена: |Game mod copy has been modified: 
 Обрезанный VPK.|Truncated VPK.
 VPK не содержит ресурсов.|VPK contains no resources.
+VPK не содержит игровых ресурсов.|VPK contains no game resources.
 Папка игры не найдена.|Game folder not found.
 Выберите папку Deadlock с установленной игрой.|Choose the installed Deadlock folder.
 Поврежден блок PocketDeadlock. Восстановите gameinfo.gi из резервной копии.|PocketDeadlock block is corrupted. Restore gameinfo.gi from a backup.
@@ -371,5 +410,26 @@ gameinfo.gi является ссылкой.|gameinfo.gi is a link.
 Посмотреть варианты|View variants
 Повторите позже.|Try again later.
 Выбери моды и их порядок. Изменения применятся после выхода из игры.|Choose mods and their order. Apply changes after closing the game.
+Обновления менеджера|Manager updates
+Обновления|Updates
+Проверить обновления PocketDeadlock|Check for PocketDeadlock updates
+Обновление готово|Update ready
+Проверяем…|Checking…
+Проверяем обновления менеджера…|Checking for manager updates…
+Проверяем обновления модов…|Checking for mod updates…
+Скачиваем обновление менеджера…|Downloading manager update…
+ готова к установке.| is ready to install.
+Не удалось проверить обновления. Повтори позже.|Could not check for updates. Try again later.
+Проверить сейчас|Check now
+Установить и перезапустить|Install and restart
+Последняя проверка менеджера:|Last manager check:
+Подробности:|Details:
+Пакет проверен. Установка закроет и снова откроет менеджер. Обычное закрытие также установит подготовленное обновление.|The package is verified. Installation closes and reopens the manager. Closing normally also installs the prepared update.
+Автоматическая проверка выполняется при запуске и каждые 30 минут согласно настройкам. Моды и файлы игры не меняются при обновлении программы.|Automatic checks run at startup and every 30 minutes according to Settings. Updating the manager does not change mods or game files.
+Настройки PocketDeadlock|PocketDeadlock settings
+Интерфейс|Interface
+Моды и запуск|Mods and launch
+Дополнительно|Advanced
+Проверить снова|Check again
 """;
 }

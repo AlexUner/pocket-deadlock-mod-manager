@@ -52,5 +52,10 @@ internal static partial class SelfTests
         var narrow=CatalogTilePanel.Layout(610);var wide=CatalogTilePanel.Layout(890);
         assert(narrow.Columns==2 && wide.Columns==3 && narrow.TileWidth*2+12<=610 && wide.TileWidth*3+24<=890,"tile columns reflow without horizontal overflow");
         assert(CatalogTilePanel.Layout(100).Columns==1 && CatalogTilePanel.Layout(double.PositiveInfinity).TileWidth>0,"tile layout handles narrow and unbounded measuring constraints");
+        var initial=CatalogTilePanel.VisibleRange(8000,3,260,0,520);
+        var middle=CatalogTilePanel.VisibleRange(8000,3,260,260*1000,520);
+        var end=CatalogTilePanel.VisibleRange(118,3,260,260*39,520);
+        assert(initial.First==0 && initial.Last<24 && middle.First>2900 && middle.Last-middle.First<24,"eight thousand feed entries realize only the viewport and upcoming rows");
+        assert(end.Last==117 && end.First<=117 && CatalogTilePanel.VisibleRange(0,3,260,0,520).Last==-1,"feed virtualization reaches the final partial row and handles empty searches");
     }
 }

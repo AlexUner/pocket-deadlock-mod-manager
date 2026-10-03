@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory)][string]$PackageUrl,
     [Parameter(Mandatory)][string]$PrivateKeyPath,
     [Parameter(Mandatory)][string]$FeedPath,
-    [string]$Version='0.5.0',
+    [string]$Version='0.6.0',
     [string]$ReleaseNotes=''
 )
 $ErrorActionPreference='Stop'

@@ -104,7 +104,7 @@ public sealed class ModStorage
             {
                 if(!prepared.Files.Contains(selected[i])) throw new IOException("Неизвестный файл.");
                 var source=Path.Combine(prepared.Folder,selected[i]);
-                var entries=Vpk.ReadResources(source);
+                var entries=Vpk.ReadGameResources(source);
                 if(entries.Any(x=>!resources.Add(x))) throw new IOException("Выбраны VPK, заменяющие одинаковые ресурсы. Выберите один вариант.");
                 string file=$"pak{i+1:00}_dir.vpk";
                 File.Copy(source,Path.Combine(destination,file));
@@ -162,6 +162,19 @@ public sealed class ModStorage
 
 public static class Vpk
 {
+    static readonly HashSet<string> DocumentationNames=new(StringComparer.OrdinalIgnoreCase){"README","LICENSE","COPYING","CHANGELOG","AUTHORS","NOTICE"};
+    // Documentation at the VPK root does not replace game assets. Nested text files may be game data.
+    static bool IsDocumentation(string resource)
+        =>!resource.Contains('/') && !resource.Contains('\\')
+        && Path.GetExtension(resource).ToLowerInvariant() is "" or ".txt" or ".md" or ".rst"
+        && DocumentationNames.Contains(Path.GetFileNameWithoutExtension(resource));
+    public static HashSet<string> ReadGameResources(string path)
+    {
+        var resources=ReadResources(path);
+        resources.RemoveWhere(IsDocumentation);
+        if(resources.Count==0) throw new IOException("VPK не содержит игровых ресурсов.");
+        return resources;
+    }
     public static HashSet<string> ReadResources(string path)
     {
         using var f=File.OpenRead(path); using var header=new BinaryReader(f);

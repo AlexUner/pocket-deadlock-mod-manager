@@ -17,6 +17,7 @@ public partial class MainWindow
     CancellationTokenSource? backgroundUpdate;
     void InitializeUpdateTimer(bool enabled)
     {
+        RefreshManagerUpdateUi();
         if(!enabled) return;
         updateTimer=new DispatcherTimer { Interval=TimeSpan.FromMinutes(30) };
         updateTimer.Tick+=async (_,_)=> {_ = sources.Warm(CancellationToken.None);await ScheduledUpdates();}; updateTimer.Start();
@@ -26,7 +27,7 @@ public partial class MainWindow
         if(busy || checkingUpdates || ActiveTransfers>0 || !storage.State.CheckUpdatesAutomatically && !storage.State.CheckAppUpdatesAutomatically) return;
         await RunUpdates(true);
     }
-    async Task RunUpdates(bool scheduled)
+    async Task RunUpdates(bool scheduled,bool includeManager=true)
     {
     if(checkingUpdates) return;
     if(ActiveTransfers>0) {StatusLabel.Text=L.T("Проверка обновлений будет доступна после завершения загрузок.");return;}
@@ -39,28 +40,14 @@ public partial class MainWindow
             message=L.T($"Моды: обновлено {summary.Updated}, доступно {summary.Available}, нужен выбор {summary.Manual}, ошибок {summary.Errors}. ");
             if(library) RefreshLibrary();
         }
-        if((!scheduled || storage.State.CheckAppUpdatesAutomatically) && storage.State.UpdateFeed!="" && stagedApp==null)
+        if(includeManager && (!scheduled || storage.State.CheckAppUpdatesAutomatically) && storage.State.UpdateFeed!="" && stagedApp==null)
         {
-            try
-            {
-                var service=new AppUpdates(storage.Root);
-                var release=await service.Check(storage.State.UpdateFeed,token);
-                if(release==null) storage.State.LastAppUpdateStatus=L.T("Установлена последняя версия ")+AppUpdates.CurrentVersion.ToString(3);
-                else
-                {
-                    stagedApp=await service.Stage(release,new Progress<string>(s=>StatusLabel.Text=L.T(s)),token); appRelease=release;
-                    AppUpdateButton.Visibility=Visibility.Visible;
-                    storage.State.LastAppUpdateStatus=L.T("Версия ")+release.Version+L.T(" готова. Установится при закрытии менеджера.");
-                }
-            }
-            catch(OperationCanceledException) { throw; }
-            catch(Exception ex) { storage.State.LastAppUpdateStatus=L.T("Обновление менеджера: ")+ex.Message; }
-            storage.Save(); message+=storage.State.LastAppUpdateStatus;
+            await CheckManagerRelease(token);message+=ManagerUpdateStatus();
         }
-        else if(storage.State.UpdateFeed=="") message+=L.T("Канал выпусков менеджера еще не задан.");
+        else if(includeManager && storage.State.UpdateFeed=="") message+=L.T("Канал выпусков менеджера еще не задан.");
         StatusLabel.Text=message;
     }
-    if(!scheduled) {await Run(L.T("Проверяем обновления модов и менеджера…"),Check);return;}
+    if(!scheduled) {await Run(L.T(includeManager?"Проверяем обновления модов и менеджера…":"Проверяем обновления модов…"),Check);return;}
     checkingUpdates=true;backgroundUpdate=new CancellationTokenSource();
     LibraryTools.IsEnabled=LibraryActions.IsEnabled=false;
     try {await Check(backgroundUpdate.Token);}
@@ -69,7 +56,7 @@ public partial class MainWindow
     finally
     {
         checkingUpdates=false;backgroundUpdate.Dispose();backgroundUpdate=null;
-        LibraryTools.IsEnabled=LibraryActions.IsEnabled=true;RefreshGame();
+        LibraryTools.IsEnabled=LibraryActions.IsEnabled=true;RefreshGame();RefreshManagerUpdateUi();
     }
     }
     void HandleClosing(object? sender,CancelEventArgs e)
@@ -136,48 +123,5 @@ public partial class MainWindow
         storage.State.Mods.RemoveAt(index);
         try { storage.State.PendingApply=true; storage.Save(); RefreshLibrary(); ClearDetail(); StatusLabel.Text=L.T("Мод убран из библиотеки. Он отключится при применении набора; сохраненные файлы остаются для восстановления."); }
         catch(Exception ex) { storage.State.Mods.Insert(index,mod); StatusLabel.Text=L.T(ex.Message); }
-    }
-    void UpdateSettings(object sender,RoutedEventArgs e)
-    {
-        if(busy) return;
-        var window=new Window {Owner=this,Title=L.T("Обновления PocketDeadlock ")+AppUpdates.CurrentVersion.ToString(3),Width=740,Height=760,WindowStartupLocation=WindowStartupLocation.CenterOwner};
-        var stack=new StackPanel {Margin=new Thickness(24)}; window.Content=new ScrollViewer {Content=stack,VerticalScrollBarVisibility=ScrollBarVisibility.Auto};
-        stack.Children.Add(new TextBlock {Text=L.T("Обновления и запуск"),FontSize=24,FontWeight=FontWeights.SemiBold,Margin=new Thickness(0,0,0,16)});
-        stack.Children.Add(new TextBlock {Text=L.T("Язык интерфейса"),Margin=new Thickness(0,0,0,8)});
-        var language=new ComboBox {ItemsSource=new[]{L.T("Как в Windows"),L.T("Русский"),"English"},SelectedIndex=storage.State.Language=="ru"?1:storage.State.Language=="en"?2:0,Margin=new Thickness(0,0,0,16)};stack.Children.Add(language);
-        stack.Children.Add(new TextBlock {Text=L.T("Тема оформления"),Margin=new Thickness(0,0,0,8)});
-        var theme=new ComboBox {ItemsSource=new[]{L.T("Как в Windows"),L.T("Темная"),L.T("Светлая")},SelectedIndex=storage.State.Theme=="dark"?1:storage.State.Theme=="light"?2:0,Margin=new Thickness(0,0,0,16)};stack.Children.Add(theme);
-        CheckBox Check(string text,bool value) { var box=new CheckBox {Content=text,IsChecked=value,Margin=new Thickness(0,0,0,12)}; stack.Children.Add(box); return box; }
-        var checks=Check(L.T("Проверять моды при запуске и каждые 30 минут"),storage.State.CheckUpdatesAutomatically);
-        var downloads=Check(L.T("Автоматически скачивать обновления выбранного варианта"),storage.State.DownloadModUpdatesAutomatically);
-        var apply=Check(L.T("Применять выбранный набор перед запуском Deadlock"),storage.State.ApplyOnLaunch);
-        var app=Check(L.T("Проверять и готовить обновления самого менеджера"),storage.State.CheckAppUpdatesAutomatically);
-        stack.Children.Add(new TextBlock {Text=L.T("Адрес подписанного канала выпусков"),Margin=new Thickness(0,8,0,8),FontWeight=FontWeights.SemiBold});
-        var feed=new TextBox {Text=storage.State.UpdateFeed,MinHeight=42}; stack.Children.Add(feed);
-        stack.Children.Add(new TextBlock {Text=L.T("HTTPS-ссылка на update-feed.json или полный путь к локальному файлу. Пакеты проверяются по подписи и SHA256, устанавливаются после закрытия приложения."),TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,16),Foreground=(System.Windows.Media.Brush)FindResource("Muted")});
-        stack.Children.Add(new TextBlock {Text=L.T("Последняя проверка модов: ")+(storage.State.LastUpdateCheck==""?L.T("еще не было"):storage.State.LastUpdateCheck),TextWrapping=TextWrapping.Wrap});
-        stack.Children.Add(new TextBlock {Text=storage.State.LastAppUpdateStatus,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,8,0,16)});
-        var error=new TextBlock {TextWrapping=TextWrapping.Wrap}; stack.Children.Add(error);
-        var buttons=new WrapPanel {Margin=new Thickness(0,12,0,0)}; stack.Children.Add(buttons);
-        var save=new Button {Content=L.T("Сохранить"),Style=(Style)FindResource("Primary"),Margin=new Thickness(0,0,8,0)}; buttons.Children.Add(save);
-        var check=new Button {Content=L.T("Сохранить и проверить сейчас")}; buttons.Children.Add(check);
-        bool Save()
-        {
-            try
-            {
-                string value=feed.Text.Trim();
-                if(value!="" && !Catalogs.SafePage(value) && !Path.IsPathFullyQualified(value)) throw new IOException(L.T("Нужен HTTPS-адрес или полный путь к JSON-файлу."));
-                storage.State.CheckUpdatesAutomatically=checks.IsChecked==true; storage.State.DownloadModUpdatesAutomatically=downloads.IsChecked==true;
-                storage.State.ApplyOnLaunch=apply.IsChecked==true; storage.State.CheckAppUpdatesAutomatically=app.IsChecked==true; storage.State.UpdateFeed=value;
-                storage.State.Language=language.SelectedIndex==1?"ru":language.SelectedIndex==2?"en":"system";storage.State.Theme=theme.SelectedIndex==1?"dark":theme.SelectedIndex==2?"light":"system";
-                storage.Save();L.Set(storage.State.Language);L.Theme(storage.State.Theme);ReloadLocale(); return true;
-            }
-            catch(Exception ex) { error.Text=L.T(ex.Message); return false; }
-        }
-        save.Click+=(_,_)=>{if(Save()) window.Close();};
-        check.Click+=async (_,_)=>{if(Save()) {window.Close(); await RunUpdates(false);}};
-        stack.Children.Add(FeatureButton(L.T("Открыть папку данных"),()=>Process.Start(new ProcessStartInfo(storage.Root){UseShellExecute=true})));
-        stack.Children.Add(FeatureButton(L.T("Открыть резервные копии"),()=> {string folder=Path.Combine(storage.Root,"backups");Directory.CreateDirectory(folder);Process.Start(new ProcessStartInfo(folder){UseShellExecute=true});}));
-        window.ShowDialog();
     }
 }

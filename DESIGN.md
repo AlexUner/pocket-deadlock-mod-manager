@@ -169,9 +169,9 @@ The detail description has a fixed line height (21px). Current local exceptions 
 
 The main window starts at 1380 x 900 device-independent units and has a minimum size of 1100 x 760. WPF units map to CSS pixels at 96 DPI; Windows scales the window at higher DPI.
 
-The outer inset is `window`. A header contains the product name and settings/game/launch actions. A full-width status band identifies the game and index state. The workspace has a flexible catalog area, a `pane` gap, and a fixed detail width (380 units). Catalog and Favorites use cover tiles; the library uses native rows for checkbox selection and reordering. Detail content scrolls vertically with `pane` padding. There is no mobile breakpoint or automatic single-column collapse.
+The outer inset is `window`. A header contains the product name, installed version, Updates and account/settings/game/launch actions. Header actions wrap as the available width shrinks. A full-width status band identifies the game and index state. The workspace has a flexible catalog area, a `pane` gap, and a fixed detail width (380 units). Catalog and Favorites use cover tiles; the library uses native rows for checkbox selection and reordering. Detail content scrolls vertically with `pane` padding. There is no mobile breakpoint or automatic single-column collapse.
 
-Navigation precedes search, filters, the scrollable result list, and pagination or apply controls. Navigation and action groups use wrapping panels. Feature pages reuse the list area and detail context. The footer holds progress, a wrapping status message, cancellation, and a staged-update action.
+Navigation precedes search, filters, the continuous virtualized feed, and a result count or library apply controls. There are no page buttons. Navigation and filter groups wrap when needed. Feature pages reuse the list area and detail context. The footer holds progress, a wrapping status message, cancellation, and a staged-update action.
 
 Use `related` gaps within actions, `row` padding and compact separation, and `group` or `pane` between groups. Do not expand every item into a large dashboard card.
 
@@ -205,7 +205,9 @@ Navigation is a wrapping row of native buttons: Catalog, Library, Favorites, Dow
 
 The catalog combines all providers internally and offers no provider switch. Below the main search, two 250-unit buttons independently select hero and mod type. Each opens a 360-unit native popup with search, matching choices, counts, an explicit empty state and an All reset. Hero names use a Russian label plus canonical English name in Russian mode. Hero aliases work in both the picker and main search. Type choices and counts follow the selected or searched hero. Down/Enter selects; Escape closes. A Reset button clears both filters and wraps at minimum width. Sorting stays in a small secondary menu at the right. Matching listings share one row; content kinds and distinct origin identities remain separate.
 
-Catalog tiles place a real cover above a two-line semibold name and two-line muted hero/type/author caption. Full text remains in tooltips. The panel uses a 220-unit minimum tile width and 12-unit gaps, distributing the available width equally into whole columns (three at the default window, two at minimum width). Images normally occupy a 16:9 frame; short viewports reduce image height, containing the full image when the frame becomes shallow. Tile padding is 8 units, with 12 units between image and name. Covers load only near the viewport; missing/loading/unavailable states use a muted native photo glyph and direct bilingual text. Selection changes fill and boundary; hover changes the boundary; keyboard focus uses ink. Arrow navigation follows rows and columns, and selection opens the detail pane.
+Catalog tiles place a real cover above a two-line semibold name and two-line muted hero/type/author caption. Full text remains in tooltips. The panel uses a 220-unit minimum tile width and 12-unit gaps, distributing the available width equally into whole columns (three at the default window, two at minimum width). Images normally occupy a 16:9 frame; short viewports reduce image height, containing the full image when the frame becomes shallow. Tile padding is 8 units, with 12 units between image and name. Pixel scrolling virtualizes the feed with two rows of overscan, matching cover prefetch. A new search resets to the top; an index refresh retains the visible origin identity. Missing/loading/unavailable states use a muted native photo glyph and direct bilingual text. Selection changes fill and boundary; hover changes the boundary; keyboard focus uses ink. Arrow navigation follows rows and columns, and selection requests the detail pane; initial results do not automatically fetch details.
+
+A wrapping native content ComboBox independently selects All available, Regular content or Sensitive / NSFW. The header provides GameBanana login/account access. The account window displays the official website and its address, separate native login/signup/site/logout actions, a session-connect action and status. Password entry and registration remain on GameBanana; the window exposes no host objects or web-message bridge. Account access controls hidden catalog visibility.
 
 Library rows retain a semibold name, muted metadata, `row` padding, and `related` gaps. Their enabled checkbox, drag reordering, and Higher/Lower preserve the existing native workflow.
 
@@ -216,6 +218,10 @@ The status band holds running/applied state, index status, and game path. The de
 ### Dialogs
 
 Use native file/folder selection and owner windows for settings and VPK choices. Preserve focus and predictable closing. Routine catalog and library navigation stays in the workspace.
+
+The Updates owner window keeps status, last-check date, progress, details and release notes in scrollable content above fixed Check now, Install and restart and Close actions. The Settings owner window groups interface preferences, mod behavior and manager updates; advanced feed and storage controls stay in an expander. Its Save, Save and check now and Cancel actions remain outside the scrolling content. Escape closes either dialog. Root documentation conflicts, empty searches and unavailable variants use explicit text.
+
+The Windows application icon uses the moss canvas and lime pocket/P geometry in transparent ICO frames from 16 to 256 pixels. Embed it in the EXE and the shared Window style; preserve native title bars and taskbar behavior. `assets/app-icon.svg` is the editable master, and `assets/app-icon.png` is the larger brand export.
 
 ## Do's and Don'ts
 
@@ -233,4 +239,3 @@ Use native file/folder selection and owner windows for settings and VPK choices.
 - **Don't** replace native behaviors with unfamiliar web affordances.
 - **Don't** introduce shadows, glass, decorative motion, display fonts, or large pill shapes.
 - **Don't** invent mobile layouts, animations, continuous OS-theme synchronization, or richer navigation states than the code implements.
-

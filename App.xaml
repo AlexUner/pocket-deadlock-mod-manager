@@ -8,7 +8,7 @@
     <SolidColorBrush x:Key="Accent" Color="#D5E998"/>
     <SolidColorBrush x:Key="Input" Color="#101613"/>
     <SolidColorBrush x:Key="Selection" Color="#303D2D"/>
-    <Style TargetType="Window"><Setter Property="Background" Value="{DynamicResource Canvas}"/><Setter Property="Foreground" Value="{DynamicResource Ink}"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/></Style>
+    <Style TargetType="Window"><Setter Property="Background" Value="{DynamicResource Canvas}"/><Setter Property="Foreground" Value="{DynamicResource Ink}"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/><Setter Property="Icon" Value="pack://application:,,,/assets/app-icon.ico"/></Style>
     <Style TargetType="Button">
       <Setter Property="Background" Value="{DynamicResource Panel}"/><Setter Property="Foreground" Value="{DynamicResource Ink}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource Line}"/><Setter Property="BorderThickness" Value="1"/>

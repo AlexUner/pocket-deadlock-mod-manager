@@ -2,9 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace PocketDeadlock;
 
-public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0,string Hero="",string ModType="")
+public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0,string Hero="",string ModType="",string ContentRatings="",string InitialVisibility="")
 {
     public string Caption => CatalogTaxonomy.Caption(this);
+    [JsonIgnore] public string DownloadsDisplay => $"↓ {Math.Max(0,Downloads):N0}";
+    [JsonIgnore] public string LikesDisplay => $"★ {Math.Max(0,Likes):N0}";
+    [JsonIgnore] public string DownloadsHelp => L.T("Скачиваний:")+$" {Math.Max(0,Downloads):N0}";
+    [JsonIgnore] public string LikesHelp => L.T("Нравится:")+$" {Math.Max(0,Likes):N0}";
+    [JsonIgnore] public string Popularity => DownloadsDisplay+" · "+LikesDisplay;
 }
 public record RemoteFile(long Id, string Name, long Size, string Url, string Md5, bool Blocked, string Description="", long Added=0)
 {
@@ -36,7 +41,7 @@ public sealed class LibraryMod
     public string Added { get; set; } = DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm");
     public string UpdateStatus { get; set; } = "";
     public RemoteFile? AvailableUpdate { get; set; }
-    [JsonIgnore] public string Caption => $"{Files.Count} VPK · {Added} · {UpdateStatus}";
+    [JsonIgnore] public string Caption => $"{Files.Count} VPK · {Added} · {L.UiStatus(UpdateStatus)}";
 }
 public sealed class AppState
 {
@@ -49,6 +54,10 @@ public sealed class AppState
     public string UpdateFeed { get; set; } = "https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest/download/update-feed.json";
     public string LastUpdateCheck { get; set; } = "";
     public string LastAppUpdateStatus { get; set; } = L.T("Канал выпусков GitHub подключен; проверка еще не выполнена");
+    public string AppUpdateState { get; set; } = "idle";
+    public string AppUpdateVersion { get; set; } = "";
+    public string LastAppUpdateCheck { get; set; } = "";
+    public string LastAppUpdateError { get; set; } = "";
     public string LastCatalog { get; set; } = "GameBanana";
     public bool PendingApply { get; set; }
     public string Language { get; set; } = "system";

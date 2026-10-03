@@ -51,7 +51,9 @@ public sealed class CatalogThumbnail : Grid
         if(viewer!=null)
         {
             var bounds=TransformToAncestor(viewer).TransformBounds(new Rect(0,0,ActualWidth,ActualHeight));
-            visible=bounds.IntersectsWith(new Rect(0,-80,viewer.ActualWidth,viewer.ActualHeight+160));
+            // Match the virtual panel's overscan so the next two rows are ready before scrolling.
+            double ahead=Math.Max(240,(ActualHeight+128)*2);
+            visible=bounds.IntersectsWith(new Rect(0,-ahead,viewer.ActualWidth,viewer.ActualHeight+ahead*2));
         }
         if(!visible) {if(request!=null) Stop();return;}
         if(request!=null) return;
