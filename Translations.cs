@@ -61,6 +61,8 @@ PocketDeadlock · Менеджер модов|PocketDeadlock · Mod Manager
 Последние обновления|Recently updated
 Название|Name
 Загрузок: |Downloads: 
+Скачиваний:|Downloads:
+Нравится:|Likes:
 Оценок: |Likes: 
 Оценки|Likes
 Фильтр страницы|Page filter

@@ -61,12 +61,14 @@ jobs:
           SIGNING_PRIVATE_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
         run: |
           $package = "./artifacts/release/PocketDeadlock-$env:RELEASE_VERSION-win-x64.zip"
+          $notes = Get-Content -LiteralPath './RELEASE_NOTES.md' -Raw -Encoding UTF8
+          if ([string]::IsNullOrWhiteSpace($notes)) { throw 'Release notes must describe the version and known limitations' }
           ./New-PortablePackage.ps1 -PublishFolder './artifacts/portable' -PackagePath $package
           $privatePath = Join-Path $env:RUNNER_TEMP 'pocket-release-key.pem'
           try {
             [IO.File]::WriteAllText($privatePath,$env:SIGNING_PRIVATE_KEY,[Text.UTF8Encoding]::new($false))
             $url = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:RELEASE_TAG/PocketDeadlock-$env:RELEASE_VERSION-win-x64.zip"
-            ./New-Release.ps1 -PackagePath $package -PackageUrl $url -PrivateKeyPath $privatePath -FeedPath './artifacts/release/update-feed.json' -Version $env:RELEASE_VERSION
+            ./New-Release.ps1 -PackagePath $package -PackageUrl $url -PrivateKeyPath $privatePath -FeedPath './artifacts/release/update-feed.json' -Version $env:RELEASE_VERSION -ReleaseNotes $notes
           } finally {
             if (Test-Path -LiteralPath $privatePath) { Remove-Item -LiteralPath $privatePath }
           }
@@ -81,7 +83,7 @@ jobs:
           PUBLISH_RELEASE: ${{ github.event.inputs.publish || 'false' }}
         run: |
           $files = @(Get-ChildItem -LiteralPath './artifacts/release' -File | ForEach-Object { $_.FullName })
-          $arguments = @('release','create',$env:RELEASE_TAG,'--verify-tag','--title',"PocketDeadlock $env:RELEASE_VERSION",'--generate-notes')
+          $arguments = @('release','create',$env:RELEASE_TAG,'--verify-tag','--title',"PocketDeadlock $env:RELEASE_VERSION",'--notes-file','./RELEASE_NOTES.md','--generate-notes')
           if ($env:PUBLISH_RELEASE -ne 'true') { $arguments += '--draft' }
           & gh @arguments @files
           if ($LASTEXITCODE -ne 0) { throw 'Release creation failed; existing releases are not overwritten' }

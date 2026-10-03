@@ -5,6 +5,11 @@ namespace PocketDeadlock;
 public record CatalogItem(long Id, string Kind, string Name, string Author, string Category, string Image, string Url, long Modified, string Provider="GameBanana", string Key="",long Downloads=0,long Likes=0,string Hero="",string ModType="",string ContentRatings="",string InitialVisibility="")
 {
     public string Caption => CatalogTaxonomy.Caption(this);
+    [JsonIgnore] public string DownloadsDisplay => $"↓ {Math.Max(0,Downloads):N0}";
+    [JsonIgnore] public string LikesDisplay => $"★ {Math.Max(0,Likes):N0}";
+    [JsonIgnore] public string DownloadsHelp => L.T("Скачиваний:")+$" {Math.Max(0,Downloads):N0}";
+    [JsonIgnore] public string LikesHelp => L.T("Нравится:")+$" {Math.Max(0,Likes):N0}";
+    [JsonIgnore] public string Popularity => DownloadsDisplay+" · "+LikesDisplay;
 }
 public record RemoteFile(long Id, string Name, long Size, string Url, string Md5, bool Blocked, string Description="", long Added=0)
 {

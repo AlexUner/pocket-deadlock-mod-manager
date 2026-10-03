@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
 using Microsoft.Win32;
@@ -13,6 +15,7 @@ public static class L
     static readonly string SystemLanguage=CultureInfo.CurrentUICulture.TwoLetterISOLanguageName=="ru"?"ru":"en";
     public static string Language {get;private set;}=SystemLanguage;
     static readonly Dictionary<string,string> resources=[];
+    static readonly Dictionary<string,LocalizedText> values=[];
     static readonly (string Ru,string En)[] Pairs=Translations.Data.Split('\n',StringSplitOptions.RemoveEmptyEntries).Select(x=>x.TrimEnd('\r').Split('|',2)).Where(x=>x.Length==2).Select(x=>(x[0],x[1])).OrderByDescending(x=>x.Item1.Length).ToArray();
     static readonly (string Ru,string En)[] EnglishPairs=Pairs.OrderByDescending(x=>x.En.Length).ToArray();
     public static string T(string text)
@@ -34,11 +37,17 @@ public static class L
         CultureInfo.CurrentCulture=CultureInfo.GetCultureInfo(Language=="ru"?"ru-RU":"en-US");
         CultureInfo.CurrentUICulture=CultureInfo.CurrentCulture;
         if(Application.Current!=null) foreach(var (key,text) in resources) Application.Current.Resources[key]=T(text);
+        foreach(var value in values.Values) value.Refresh();
     }
     public static string Resource(string text)
     {
         string key="loc."+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)))[..20];
         resources[key]=text;Application.Current.Resources[key]=T(text);return key;
+    }
+    internal static LocalizedText Value(string text)
+    {
+        if(!values.TryGetValue(text,out var value)) values[text]=value=new LocalizedText(text);
+        return value;
     }
     public static void Theme(string preference)
     {
@@ -48,6 +57,12 @@ public static class L
         for(int i=0;i<keys.Length;i++) Application.Current.Resources[keys[i]]=new SolidColorBrush((Color)ColorConverter.ConvertFromString(colors[i]));
     }
 }
+internal sealed class LocalizedText(string text) : INotifyPropertyChanged
+{
+    public string Value=>L.T(text);
+    public event PropertyChangedEventHandler? PropertyChanged;
+    internal void Refresh()=>PropertyChanged?.Invoke(this,new PropertyChangedEventArgs(nameof(Value)));
+}
 [MarkupExtensionReturnType(typeof(object))]
 public sealed class I18nExtension : MarkupExtension
 {
@@ -56,6 +71,8 @@ public sealed class I18nExtension : MarkupExtension
     {
         var target=(IProvideValueTarget?)provider.GetService(typeof(IProvideValueTarget));
         if(target?.TargetProperty is not DependencyProperty property || property.Name=="Name" && property!=System.Windows.Automation.AutomationProperties.NameProperty) return L.T(Text);
-        return new DynamicResourceExtension(L.Resource(Text)).ProvideValue(provider);
+        // WPF supports bindings in deferred template content; a resource expression
+        // returned by a custom extension can fail when the template is realized.
+        return new Binding(nameof(LocalizedText.Value)) {Source=L.Value(Text),Mode=BindingMode.OneWay}.ProvideValue(provider);
     }
 }

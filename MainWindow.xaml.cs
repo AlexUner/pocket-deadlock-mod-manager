@@ -151,6 +151,7 @@ public partial class MainWindow : Window
         DetailScroll.ScrollToTop();
         detailGeneration++;
         details=null; selectedLocal=null; sourceUrl=""; PreviewImage.Source=null;
+        DetailMeta.ToolTip=null;
         LibraryTools.Visibility=Visibility.Collapsed;
         HigherButton.IsEnabled=LowerButton.IsEnabled=RollbackButton.IsEnabled=false;
         FavoriteButton.Visibility=Visibility.Visible;
@@ -183,7 +184,8 @@ public partial class MainWindow : Window
         if(details.Item.ContentRatings!="") DetailMeta.Text+="\n"+L.T(details.Item.ContentRatings);
         RequirementsLabel.Text=details.Requirements.Length>0?L.T("Требования автора: ")+details.Requirements:"";
         sourceUrl=details.Item.Url; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
-        DetailMeta.Text+=L.T($"\nЗагрузок: {details.Item.Downloads} · Оценок: {details.Item.Likes}");RefreshFavorite();
+        DetailMeta.Text+="\n"+details.Item.Popularity;
+        DetailMeta.ToolTip=details.Item.DownloadsHelp+" · "+details.Item.LikesHelp;RefreshFavorite();
         FilesBox.ItemsSource=details.Files;
         if(selectedFile!=null && details.Files.Contains(selectedFile)) FilesBox.SelectedItem=selectedFile;
         else FilesBox.SelectedIndex=details.Files.Count==1?0:-1;
@@ -212,6 +214,7 @@ public partial class MainWindow : Window
         RollbackButton.IsEnabled=mod.Revisions.Count>0;
         LibraryTools.Visibility=Visibility.Visible; OverridesBox.IsChecked=mod.AllowOverrides; ModAutoBox.IsChecked=mod.AutoUpdate;
         DetailMeta.Text=L.T("Локальная библиотека · ")+mod.Added;
+        DetailMeta.ToolTip=null;
         DetailText.Text=L.T("VPK в наборе: ")+mod.Files.Count+L.T(".\nВариант: ")+(mod.VariantName==""?L.T("Определится при проверке обновлений"):mod.VariantName)+L.T("\nПредыдущих версий: ")+mod.Revisions.Count+"\n\n"+L.UiStatus(mod.UpdateStatus);
         sourceUrl=mod.SourceUrl; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
         DownloadButton.Content=L.T("Посмотреть варианты"); DownloadButton.IsEnabled=mod.RemoteId>0;

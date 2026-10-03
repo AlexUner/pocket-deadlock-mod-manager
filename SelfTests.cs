@@ -115,6 +115,7 @@ internal static partial class SelfTests
         await UnifiedTests(run,Assert);
         await ThumbnailTests(run,Assert);
         AccountTests(run,Assert,Fails);
+        await TemplateLocalizationTests(run,Assert);
         if(live)
         {
         var provider=new GameBanana();

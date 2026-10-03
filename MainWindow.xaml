@@ -119,6 +119,11 @@
                   <local:CatalogThumbnail Url="{Binding Image}" ViewportHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
                   <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Height="44" LineHeight="22" Margin="4,12,4,0" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" />
                   <TextBlock Text="{Binding Caption}" Foreground="{DynamicResource Muted}" FontSize="12" Height="34" LineHeight="17" Margin="4,4,4,4" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" ToolTip="{Binding Caption}" />
+                  <Grid Height="20" Margin="4,0,4,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding DownloadsDisplay}" Foreground="{DynamicResource Muted}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip="{Binding DownloadsHelp}" AutomationProperties.Name="{Binding DownloadsHelp}" Margin="0,0,12,0"/>
+                    <TextBlock Grid.Column="1" Text="{Binding LikesDisplay}" Foreground="{DynamicResource Accent}" FontSize="12" ToolTip="{Binding LikesHelp}" AutomationProperties.Name="{Binding LikesHelp}"/>
+                  </Grid>
                 </StackPanel>
               </DataTemplate>
             </ListBox.ItemTemplate>

@@ -37,7 +37,7 @@ public sealed class CatalogTilePanel : VirtualizingPanel, IScrollInfo
         double height=double.IsFinite(available.Height)?available.Height:Math.Max(1,owner.ActualHeight);
         viewport=new Size(width,height);(Columns,tileWidth)=Layout(width);
         double cover=Math.Min(Math.Max(0,tileWidth-18)*9/16,Math.Max(72,owner.ActualHeight-120));
-        rowHeight=cover+116;UpdateExtent(owner.Items.Count);
+        rowHeight=cover+136;UpdateExtent(owner.Items.Count);
         var (first,last)=VisibleRange(owner.Items.Count,Columns,RowStride,offset.Y,height);
         _=InternalChildren.Count; // Initialize the items host before asking WPF for its generator.
         var generator=ItemContainerGenerator;
