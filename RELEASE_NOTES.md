@@ -1,7 +1,7 @@
-PocketDeadlock 0.6.3 - native Windows Deadlock Mod Manager.
+PocketDeadlock 0.6.5 - native Windows Deadlock Mod Manager.
 
 - Unified infinite cover catalog with cached startup indexing, hero/type/content filters, and official GameBanana account connection for restricted entries.
-- Download counts and star-marked likes on catalog tiles and mod details. The star shows the source's number of likes, not a five-star review score.
+- Download counts and star-marked likes on catalog tiles and mod details. The star shows the source's number of likes, not a five-star review score. Missing counts show a dash; opening a card loads and caches available counts without slowing every search or fetching every profile. Statistics refreshes retain the indexed hero and mod type.
 - Fixed a library-opening crash caused by localization in a deferred WPF template. Accessibility labels and tooltips update when switching between Russian and English.
 - Root README and license files no longer create false VPK conflicts. Game resources retain overlap checks.
 - Visible manager update action, installed version, last check, progress, retry and verified install-on-close or install-and-restart controls.
@@ -12,4 +12,4 @@ Antivirus limitation: earlier developer UI-check processes triggered Kaspersky S
 
 Extract the whole ZIP into a writable folder and keep the EXE beside the included runtime files. GameBanana sign-in requires WebView2 Runtime. Apply a selected mod set only after closing Deadlock.
 
-Русский: на плитках показаны скачивания и ★ с числом отметок «нравится». Исправлено падение при открытии библиотеки; доступны оба языка, темы, вход GameBanana и отдельная проверка обновлений менеджера. Предыдущее срабатывание Kaspersky на диагностическую сборку не признано лабораторией ложным. Результаты локальной проверки указаны в отчете выше; исключение для антивируса не является требованием установки.
+Русский: на плитках показаны скачивания и ★ с числом отметок «Нравится». Если источник не передал число, показан прочерк; доступные числа загружаются при открытии карточки и сохраняются в индексе. Исправлено падение при открытии библиотеки; доступны оба языка, темы, вход GameBanana и отдельная проверка обновлений менеджера. Предыдущее срабатывание Kaspersky на диагностическую сборку не признано лабораторией ложным. Результаты локальной проверки указаны в отчете выше; исключение для антивируса не является требованием установки.

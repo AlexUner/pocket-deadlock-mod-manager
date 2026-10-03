@@ -83,7 +83,17 @@ public sealed class HybridCatalog : IModCatalog
     {
         lock(gate)
         {
-            var merged=rows.GroupBy(Identity).ToDictionary(x=>x.Key,x=>x.Last());foreach(var row in incoming) merged[Identity(row)]=row;
+            var merged=rows.GroupBy(Identity).ToDictionary(x=>x.Key,x=>x.Last());
+            foreach(var row in incoming)
+            {
+                string key=Identity(row);
+                merged[key]=merged.TryGetValue(key,out var previous)?row with {
+                    Downloads=row.HasDownloads?row.Downloads:previous.Downloads,
+                    DownloadsKnown=row.HasDownloads || previous.HasDownloads,
+                    Likes=row.HasLikes?row.Likes:previous.Likes,
+                    LikesKnown=row.HasLikes || previous.HasLikes
+                }:row;
+            }
             rows=merged.Values.Take(30000).ToList();ModStorage.AtomicWrite(file,JsonSerializer.SerializeToUtf8Bytes(rows));
         }
         Changed?.Invoke();
@@ -136,7 +146,20 @@ public sealed class HybridCatalog : IModCatalog
         catch { /* Keep instant local results when the remote search is temporarily unavailable. */ }
         finally {if(pendingQuery==query) pendingQuery="";}
     }
-    public Task<ModDetails> Details(string kind,long id,CancellationToken token)=>Origin.Details(kind,id,token);
-    public Task<ModDetails> Details(CatalogItem item,CancellationToken token)=>Origin.Details(item,token);
+    async Task<ModDetails> CacheDetails(Task<ModDetails> request,CancellationToken token)
+    {
+        var result=await request;
+        await Task.Run(()=>
+        {
+            // Profile responses may contain only a leaf category. Refresh counts
+            // without replacing the richer hero/type metadata from the index.
+            var indexed=Snapshot().FirstOrDefault(x=>Identity(x)==Identity(result.Item));
+            var row=(indexed??result.Item) with {Downloads=result.Item.Downloads,DownloadsKnown=result.Item.HasDownloads,Likes=result.Item.Likes,LikesKnown=result.Item.HasLikes};
+            Merge([row]);
+        },token);
+        return result;
+    }
+    public Task<ModDetails> Details(string kind,long id,CancellationToken token)=>CacheDetails(Origin.Details(kind,id,token),token);
+    public Task<ModDetails> Details(CatalogItem item,CancellationToken token)=>CacheDetails(Origin.Details(item,token),token);
     public Task Download(RemoteFile file,string destination,IProgress<string> progress,CancellationToken token)=>Origin.Download(file,destination,progress,token);
 }

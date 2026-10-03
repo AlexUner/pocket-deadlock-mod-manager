@@ -145,7 +145,7 @@ public sealed class GameBanana : IModCatalog
         }
         progress?.Invoke(done);
     }
-    static CatalogItem Item(JsonElement x,string kind)
+    internal static CatalogItem Item(JsonElement x,string kind)
     {
         string image = "";
         var images = Child(Child(x,"_aPreviewMedia"),"_aImages");
@@ -162,11 +162,12 @@ public sealed class GameBanana : IModCatalog
         var ratings=Child(x,"_aContentRatings");
         string content=ratings.ValueKind==JsonValueKind.Object?string.Join(", ",ratings.EnumerateObject().Where(p=>p.Value.ValueKind==JsonValueKind.String).Select(p=>p.Value.GetString())):Flag(x,"_bHasContentRatings")?"Sensitive content":"";
         return new(Number(x,"_idRow"),kind,Text(x,"_sName"),Text(Child(x,"_aSubmitter"),"_sName"),
-            category+(hero=="" ? "" : " · "+hero),image,Text(x,"_sProfileUrl"),Number(x,"_tsDateModified"),Downloads:Number(x,"_nDownloadCount"),Likes:Number(x,"_nLikeCount"),Hero:CatalogTaxonomy.ResolveHero(hero)==""?CatalogTaxonomy.ResolveHero(category):CatalogTaxonomy.ResolveHero(hero),ModType:category,ContentRatings:content,InitialVisibility:Text(x,"_sInitialVisibility"));
+            category+(hero=="" ? "" : " · "+hero),image,Text(x,"_sProfileUrl"),Number(x,"_tsDateModified"),Downloads:Number(x,"_nDownloadCount"),Likes:Number(x,"_nLikeCount"),Hero:CatalogTaxonomy.ResolveHero(hero)==""?CatalogTaxonomy.ResolveHero(category):CatalogTaxonomy.ResolveHero(hero),ModType:category,ContentRatings:content,InitialVisibility:Text(x,"_sInitialVisibility"),DownloadsKnown:KnownCount(x,"_nDownloadCount"),LikesKnown:KnownCount(x,"_nLikeCount"));
     }
     internal static JsonElement Child(JsonElement x,string key) => x.ValueKind==JsonValueKind.Object && x.TryGetProperty(key,out var v) ? v : default;
     internal static string Text(JsonElement x,string key) => Child(x,key).ValueKind==JsonValueKind.String ? Child(x,key).GetString()! : "";
     internal static long Number(JsonElement x,string key) => Child(x,key).TryNumber();
+    static bool KnownCount(JsonElement x,string key) => Child(x,key).ValueKind==JsonValueKind.Number && Child(x,key).TryGetInt64(out var value) && value>=0;
     internal static bool Flag(JsonElement x,string key) => Child(x,key).ValueKind==JsonValueKind.True;
     internal static string Plain(string text) => WebUtility.HtmlDecode(Regex.Replace(Regex.Replace(text,@"<(br\s*/?|/p|/div|/li)>","\n",RegexOptions.IgnoreCase),"<[^>]*>",""));
 }

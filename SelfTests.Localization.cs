@@ -42,6 +42,10 @@ internal static partial class SelfTests
             var texts=VisualChildren<TextBlock>(list).ToList();
             assert(texts.Any(x=>x.Text==fixture.DownloadsDisplay) && texts.Any(x=>x.Text==fixture.LikesDisplay),"compiled catalog card displays download count and star likes count");
             assert(texts.Any(x=>AutomationProperties.GetName(x)==fixture.DownloadsHelp) && texts.Any(x=>AutomationProperties.GetName(x)==fixture.LikesHelp),"card popularity counters expose their meanings to accessibility");
+            var unknown=fixture with {Downloads=0,Likes=0};list.ItemsSource=new[]{unknown};host.UpdateLayout();
+            await host.Dispatcher.InvokeAsync(()=>{},DispatcherPriority.ContextIdle);
+            texts=VisualChildren<TextBlock>(list).ToList();
+            assert(texts.Any(x=>x.Text=="↓ —") && texts.Any(x=>x.Text=="★ —"),"compiled catalog template shows unknown counts without invented zero values");
         }
         finally {host.Close();source.Close();L.Set(previous);}
     }
