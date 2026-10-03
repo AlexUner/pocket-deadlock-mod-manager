@@ -11,7 +11,7 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 
 [Download the latest release](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest) · [Русская инструкция](#русская-инструкция)
 
-The ordinary build excludes developer diagnostics and automatic image capture after a Kaspersky System Watcher detection in a developer UI-check process. The earlier detection has not been classified as a false positive. Version 0.6.5 includes the library-opening localization fix and accurate catalog counters; 0.6.2 through 0.6.4 remain drafts. Current file-scan and ordinary-run results, including whether a trust rule was active, are recorded in [verification status](Проверка.md). They do not guarantee antivirus acceptance on every machine or in every workflow.
+The ordinary build excludes developer diagnostics and automatic image capture after a Kaspersky System Watcher detection in a developer UI-check process. The earlier detection has not been classified as a false positive. Version 0.6.6 includes the library-opening localization fix, accurate catalog counters and an update-installation path fix; 0.6.2 through 0.6.5 remain drafts. Current file-scan and ordinary-run results, including whether a trust rule was active, are recorded in [verification status](Проверка.md). They do not guarantee antivirus acceptance on every machine or in every workflow.
 
 ![PocketDeadlock catalog, Russian dark interface](assets/catalog-ru.png)
 

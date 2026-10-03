@@ -1,10 +1,11 @@
-PocketDeadlock 0.6.5 - native Windows Deadlock Mod Manager.
+PocketDeadlock 0.6.6 - native Windows Deadlock Mod Manager.
 
 - Unified infinite cover catalog with cached startup indexing, hero/type/content filters, and official GameBanana account connection for restricted entries.
 - Download counts and star-marked likes on catalog tiles and mod details. The star shows the source's number of likes, not a five-star review score. Missing counts show a dash; opening a card loads and caches available counts without slowing every search or fetching every profile. Statistics refreshes retain the indexed hero and mod type.
 - Fixed a library-opening crash caused by localization in a deferred WPF template. Accessibility labels and tooltips update when switching between Russian and English.
 - Root README and license files no longer create false VPK conflicts. Game resources retain overlap checks.
 - Visible manager update action, installed version, last check, progress, retry and verified install-on-close or install-and-restart controls.
+- Fixed update installation for the trailing directory separator returned by Windows. Regression checks replace an actual fixture installation, retain local data and restore files after a locked-file failure.
 - Native application/window icon, both themes, Windows language defaults and loadout sharing keys.
 - GitHub Actions build and test ordinary portable packages, publish checksums and sign the update feed. Release notes are included in the manager's update window.
 

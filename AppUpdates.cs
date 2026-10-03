@@ -126,16 +126,19 @@ public sealed class AppUpdates
         var start=new ProcessStartInfo(Path.Combine(data.Stage,"PocketDeadlock.exe")){UseShellExecute=false,CreateNoWindow=true,WindowStyle=ProcessWindowStyle.Hidden};
         start.ArgumentList.Add("--apply-update"); start.ArgumentList.Add(job); _=Process.Start(start)??throw new IOException("Не удалось запустить установку обновления.");
     }
-    public static async Task ApplyJob(string jobPath)
+    public static Task ApplyJob(string jobPath)=>ApplyJob(jobPath,UpdateKey.PublicPem);
+    internal static async Task ApplyJob(string jobPath,string publicKey)
     {
         string result=Path.Combine(Path.GetDirectoryName(jobPath)!,"result.json");
         UpdateJob? job=null; var replaced=new List<(string Target,string? Backup)>();
         try
         {
             job=JsonSerializer.Deserialize<UpdateJob>(File.ReadAllText(jobPath))??throw new IOException("Неверное задание.");
-            Verify(job.Release,UpdateKey.PublicPem);
-            string stage=Path.GetFullPath(job.Stage),target=Path.GetFullPath(job.Target);
-            if(target.StartsWith(stage+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase) || stage.StartsWith(target+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase) || target.Equals(stage,StringComparison.OrdinalIgnoreCase)) throw new IOException("Папки пакета и установленной программы совпадают.");
+            Verify(job.Release,publicKey);
+            string stage=Path.TrimEndingDirectorySeparator(Path.GetFullPath(job.Stage)),target=Path.TrimEndingDirectorySeparator(Path.GetFullPath(job.Target));
+            string stagePrefix=Path.EndsInDirectorySeparator(stage)?stage:stage+Path.DirectorySeparatorChar;
+            string targetPrefix=Path.EndsInDirectorySeparator(target)?target:target+Path.DirectorySeparatorChar;
+            if(target.StartsWith(stagePrefix,StringComparison.OrdinalIgnoreCase) || stage.StartsWith(targetPrefix,StringComparison.OrdinalIgnoreCase) || target.Equals(stage,StringComparison.OrdinalIgnoreCase)) throw new IOException("Папки пакета и установленной программы совпадают.");
             if(!File.Exists(Path.Combine(target,"PocketDeadlock.exe")) || !File.Exists(Path.Combine(target,"PocketDeadlock.dll"))) throw new IOException("Папка назначения не содержит PocketDeadlock.");
             ModStorage.RejectLinks(stage); ModStorage.RejectLinks(target);
             if(ReadVersion(Path.Combine(stage,"PocketDeadlock.dll"))!=ParseVersion(job.Release.Version)) throw new IOException("Неверная версия подготовленного пакета.");
@@ -156,7 +159,7 @@ public sealed class AppUpdates
             foreach(var file in Directory.GetFiles(verifiedApp,"*",SearchOption.AllDirectories))
             {
                 string relative=Path.GetRelativePath(verifiedApp,file),destination=Path.GetFullPath(Path.Combine(target,relative));
-                if(!destination.StartsWith(target+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase)) throw new IOException("Неверный путь установки.");
+                if(!destination.StartsWith(targetPrefix,StringComparison.OrdinalIgnoreCase)) throw new IOException("Неверный путь установки.");
                 string? saved=null;
                 if(File.Exists(destination)) { saved=Path.Combine(backup,relative); Directory.CreateDirectory(Path.GetDirectoryName(saved)!); File.Copy(destination,saved); }
                 Directory.CreateDirectory(Path.GetDirectoryName(destination)!); replaced.Add((destination,saved)); ModStorage.AtomicWrite(destination,File.ReadAllBytes(file));

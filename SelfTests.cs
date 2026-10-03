@@ -281,6 +281,7 @@ internal static partial class SelfTests
         assert(File.Exists(Path.Combine(stage,"PocketDeadlock.dll")),"signed package stages successfully with three-part version");
         string job=AppUpdates.CreateJob(stage,Path.Combine(run,"unused-target"),0,release,false);
         assert(File.Exists(Path.Combine(Path.GetDirectoryName(job)!,"package.zip")),"update job locates signed archive through nested package folders");
+        await UpdateInstallTests(run,app,release,publicKey,assert);
         bool rejected=false;
         try { await app.Stage(Sign(release with {Sha256=new string('0',64)}),progress,token); } catch(IOException) {rejected=true;}
         assert(rejected,"signed feed with wrong package hash is rejected");
