@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing stable tag, for example v0.6.0'
+        description: 'Existing stable tag, for example v0.6.1'
         required: true
         type: string
       publish:
@@ -70,7 +70,7 @@ jobs:
           } finally {
             if (Test-Path -LiteralPath $privatePath) { Remove-Item -LiteralPath $privatePath }
           }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: PocketDeadlock-signed-release
           path: artifacts/release
@@ -88,4 +88,3 @@ jobs:
           "## PocketDeadlock $env:RELEASE_VERSION" >> $env:GITHUB_STEP_SUMMARY
           "Package, SHA256SUMS.txt and signed update-feed.json were uploaded together." >> $env:GITHUB_STEP_SUMMARY
           "The desktop updater follows published stable releases; draft releases are not installed." >> $env:GITHUB_STEP_SUMMARY
-

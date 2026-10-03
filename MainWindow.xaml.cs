@@ -81,7 +81,7 @@ public partial class MainWindow : Window
         finally
         {
             operation.Dispose(); operation=null; busy=false; Workspace.IsEnabled=true; Progress.Visibility=Visibility.Collapsed; CancelButton.Visibility=Visibility.Collapsed;
-            RefreshGame();
+            RefreshGame();RefreshManagerUpdateUi();
         }
     }
     void RefreshGame()
@@ -205,7 +205,7 @@ public partial class MainWindow : Window
         RollbackButton.IsEnabled=mod.Revisions.Count>0;
         LibraryTools.Visibility=Visibility.Visible; OverridesBox.IsChecked=mod.AllowOverrides; ModAutoBox.IsChecked=mod.AutoUpdate;
         DetailMeta.Text=L.T("Локальная библиотека · ")+mod.Added;
-        DetailText.Text=L.T("VPK в наборе: ")+mod.Files.Count+L.T(".\nВариант: ")+(mod.VariantName==""?L.T("Определится при проверке обновлений"):mod.VariantName)+L.T("\nПредыдущих версий: ")+mod.Revisions.Count+"\n\n"+mod.UpdateStatus;
+        DetailText.Text=L.T("VPK в наборе: ")+mod.Files.Count+L.T(".\nВариант: ")+(mod.VariantName==""?L.T("Определится при проверке обновлений"):mod.VariantName)+L.T("\nПредыдущих версий: ")+mod.Revisions.Count+"\n\n"+L.T(mod.UpdateStatus);
         sourceUrl=mod.SourceUrl; SourceButton.IsEnabled=Catalogs.SafePage(sourceUrl);
         DownloadButton.Content=L.T("Посмотреть варианты"); DownloadButton.IsEnabled=mod.RemoteId>0;
     }

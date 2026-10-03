@@ -32,7 +32,7 @@ jobs:
       - name: Verify release package without diagnostic code
         shell: pwsh
         run: ./New-PortablePackage.ps1 -PublishFolder './artifacts/PocketDeadlock' -PackagePath './artifacts/package/PocketDeadlock-win-x64.zip'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.1
         with:
           name: PocketDeadlock-win-x64
           path: artifacts/package

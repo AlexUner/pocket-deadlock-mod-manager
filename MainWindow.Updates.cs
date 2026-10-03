@@ -56,7 +56,7 @@ public partial class MainWindow
     finally
     {
         checkingUpdates=false;backgroundUpdate.Dispose();backgroundUpdate=null;
-        LibraryTools.IsEnabled=LibraryActions.IsEnabled=true;RefreshGame();
+        LibraryTools.IsEnabled=LibraryActions.IsEnabled=true;RefreshGame();RefreshManagerUpdateUi();
     }
     }
     void HandleClosing(object? sender,CancelEventArgs e)
