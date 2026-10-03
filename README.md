@@ -11,7 +11,7 @@ A native Windows x64 tool for finding Deadlock mods, managing a local VPK librar
 
 [Download the latest release](https://github.com/AlexUner/pocket-deadlock-mod-manager/releases/latest) · [Русская инструкция](#русская-инструкция)
 
-Version 0.6 is under review. A developer UI-check process triggered Kaspersky System Watcher on October 3, 2026. The new build is not being published to the signed update channel pending investigation. Diagnostic checks and image capture are now excluded from the ordinary build. Ordinary startup has been checked with an application trust rule configured by the owner; this does not establish antivirus acceptance without that rule. See [verification status](Проверка.md).
+The ordinary build excludes developer diagnostics and automatic image capture after a Kaspersky System Watcher detection in a developer UI-check process. The earlier detection has not been classified as a false positive. Version 0.6.3 fixes a library-opening localization crash found during the release check; 0.6.2 will remain a draft. Current file-scan and ordinary-run results, including whether a trust rule was active, are recorded in [verification status](Проверка.md). They do not guarantee antivirus acceptance on every machine or in every workflow.
 
 ![PocketDeadlock catalog, Russian dark interface](assets/catalog-ru.png)
 
@@ -29,6 +29,7 @@ Version 0.6 is under review. A developer UI-check process triggered Kaspersky Sy
 ## Features
 
 - **Infinite cover feed:** Catalog, search and Favorites use an adaptive image grid without page buttons. The saved index exposes every matching result while the panel creates only visible tiles and two upcoming rows. Covers are prefetched with four simultaneous requests and memory/disk caching. A new search resets scrolling; background indexing retains the visible anchor. Details and file variants load on selection.
+- **Popularity at a glance:** tiles and mod details show download counts and a star with the source's likes count. The star is not a five-star review score. Tooltips and accessible labels identify both values.
 - **GameBanana account:** log in or sign up on the official website inside an embedded WebView2 window, then connect the account. The manager verifies the session with GameBanana, encrypts it for the current Windows user, and sends cookies only to the HTTPS GameBanana website. Passwords are entered on the website. Log out to remove the saved session. Filter All available, Regular content or Sensitive / NSFW independently of hero and mod type. Hidden entries require a connected account; access still depends on the source and account settings.
 - **One combined catalog:** GameBanana, Deadlocker, and DeadlockMods work behind the scenes. Origin IDs remove duplicate listings while retaining community-only mods. Hero/type/content filtering and sorting cover the entire combined index.
 - **Hero and mod-type filters:** choose a hero and independently choose skins/models, interface, effects, weapons, music, voices, or another type. Both pickers include search, counts, Down/Enter selection and Escape. Type counts follow the selected or searched hero; Reset clears both filters. Sorting is in the small **Sort** menu.
@@ -72,7 +73,7 @@ The signed app-update feed uses [the latest GitHub release](https://github.com/A
 
 Pull requests and pushes to main run Windows compilation, isolated offline checks and ordinary package verification. The artifact is a portable ZIP with runtime and dependency licenses; developer diagnostics and owner data are rejected.
 
-The **Windows release** workflow accepts an existing stable `vMAJOR.MINOR.PATCH` tag matching the project version. A tag push creates a draft release. Manual dispatch can explicitly publish it. It runs the checks again, builds the ordinary runtime, packages it, signs `update-feed.json`, and uploads that feed, the ZIP and `SHA256SUMS.txt` together. A published stable release becomes available to desktop clients through the existing latest-release feed; drafts do not.
+The **Windows release** workflow accepts an existing stable `vMAJOR.MINOR.PATCH` tag matching the project version. A tag push creates a draft release. Manual dispatch can explicitly publish it. It runs the checks again, builds the ordinary runtime, packages it, signs `update-feed.json`, and uploads that feed, the ZIP and `SHA256SUMS.txt` together. Maintain `RELEASE_NOTES.md` before tagging: its text is included in both the release and the manager's update window. A published stable release becomes available to desktop clients through the existing latest-release feed; drafts do not.
 
 Before the first automatic signed release, configure the `RELEASE_SIGNING_KEY` secret in the GitHub **releases** environment with the existing ECDSA private key. It must match `UpdateKey.cs`; the script rejects another key. Never commit the private key. GitHub receives this credential only when the maintainer configures that secret. Manual workflows become available once their file is on the default branch. See [GitHub workflow instructions](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
 

@@ -51,7 +51,7 @@ Manage the supported VPK workflow in one desktop tool: discover, download or imp
 - Removing an entry removes it from the library selection. Stored content remains for recovery; the game's applied set changes on the next Apply.
 - Catalog availability, checksums, and structural VPK checks do not establish current-game compatibility or guarantee antivirus acceptance.
 - The application is independent of Valve and the catalog providers. Similar capabilities do not establish identical parity with another manager.
-- Diagnostic checks and automatic image capture are developer-only and are excluded from normal builds. The 0.6 release is on hold after a Kaspersky behavioral detection in a developer UI-check process; previous file scans do not resolve this detection.
+- Diagnostic checks and automatic image capture are developer-only and are excluded from normal builds after a Kaspersky behavioral detection in a developer UI-check process. The original detection has not been classified as a false positive; file scans and bounded ordinary runs cannot guarantee every antivirus or workflow accepts the app. Verification records identify whether a trust rule was active.
 
 ## Brand Commitments
 
