@@ -1,0 +1,18 @@
+name: Feature request / Предложение
+description: Describe the player scenario and the improvement you need.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: User scenario / Пользовательский сценарий
+      description: What are you trying to do, and what is difficult today? English and Russian are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed behavior / Как это должно работать
+      description: Describe the result and any workaround you currently use.
+    validations:
+      required: true

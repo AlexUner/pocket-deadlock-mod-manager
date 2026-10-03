@@ -1,0 +1,37 @@
+name: Bug report / Ошибка
+description: Report a reproducible app problem. English and Russian are welcome.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use the antivirus form for detections and private security reporting for exploitable vulnerabilities.
+        Не прикладывай пароли, cookies, полный state.json и личные пути. Секреты на скриншотах нужно скрыть.
+  - type: input
+    id: version
+    attributes:
+      label: PocketDeadlock version / Версия
+      placeholder: "0.6.6"
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version / Версия Windows
+      placeholder: "Windows 11 x64"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Как повторить
+      description: Include whether Deadlock was running and any relevant public mod URL or archive variant.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior / Ожидаемый и фактический результат
+      description: Include the exact error text and a redacted screenshot if useful.
+    validations:
+      required: true
