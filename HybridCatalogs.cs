@@ -149,7 +149,14 @@ public sealed class HybridCatalog : IModCatalog
     async Task<ModDetails> CacheDetails(Task<ModDetails> request,CancellationToken token)
     {
         var result=await request;
-        await Task.Run(()=>Merge([result.Item]),token);
+        await Task.Run(()=>
+        {
+            // Profile responses may contain only a leaf category. Refresh counts
+            // without replacing the richer hero/type metadata from the index.
+            var indexed=Snapshot().FirstOrDefault(x=>Identity(x)==Identity(result.Item));
+            var row=(indexed??result.Item) with {Downloads=result.Item.Downloads,DownloadsKnown=result.Item.HasDownloads,Likes=result.Item.Likes,LikesKnown=result.Item.HasLikes};
+            Merge([row]);
+        },token);
         return result;
     }
     public Task<ModDetails> Details(string kind,long id,CancellationToken token)=>CacheDetails(Origin.Details(kind,id,token),token);

@@ -14,13 +14,14 @@ internal static partial class SelfTests
         using var json=JsonDocument.Parse("{\"_idRow\":12,\"_sName\":\"Fixture\",\"_nLikeCount\":0}");
         var parsed=GameBanana.Item(json.RootElement,"Mod");
         assert(!parsed.HasDownloads && parsed.HasLikes && parsed.Likes==0,"GameBanana list parser distinguishes omitted downloads from true zero likes");
-        var fresh=sparse with {Downloads=1234,Likes=27,DownloadsKnown=true,LikesKnown=true};
+        var fresh=sparse with {Category="RatKing",Downloads=1234,Likes=27,DownloadsKnown=true,LikesKnown=true};
         string folder=Path.Combine(run,"popularity-index");
         var origin=new FixtureCatalog(new ModDetails(fresh,"","",[]),"");
         var hybrid=new HybridCatalog("Test",origin,folder);
         hybrid.Merge([sparse]);int changes=0;hybrid.Changed+=()=>changes++;
         await hybrid.Details(sparse,CancellationToken.None);
         assert(hybrid.Snapshot().Single().Downloads==1234 && changes==1,"opening details updates popularity in the cached feed and emits a refresh");
+        assert(hybrid.Snapshot().Single().Category=="UI","profile leaf category cannot replace indexed mod type when caching popularity");
         hybrid.Merge([parsed]);
         assert(hybrid.Snapshot().Single().Downloads==1234 && hybrid.Snapshot().Single().HasDownloads,"sparse list refresh preserves previously fetched download count");
         hybrid.Merge([sparse]);
