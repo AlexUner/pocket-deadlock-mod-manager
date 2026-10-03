@@ -1,0 +1,43 @@
+name: Antivirus detection / Срабатывание антивируса
+description: Report a detection with the exact build and triggering action, without private data.
+title: "[Antivirus]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read the [verification record](https://github.com/AlexUner/pocket-deadlock-mod-manager/blob/main/docs/antivirus.md).
+        This report does not require disabling protection or changing exclusions.
+        Не прикладывай cookies, профиль браузера, личную библиотеку, закрытые ключи и неотредактированные личные пути.
+  - type: input
+    id: build
+    attributes:
+      label: App version and download source / Версия и откуда скачана
+      placeholder: "0.6.6, official GitHub release ZIP"
+    validations:
+      required: true
+  - type: input
+    id: antivirus
+    attributes:
+      label: Antivirus and version / Антивирус и версия
+      placeholder: "Kaspersky 21.26"
+    validations:
+      required: true
+  - type: textarea
+    id: detection
+    attributes:
+      label: Exact detection and file / Название обнаружения и файл
+      description: Is it the manager EXE/DLL or a downloaded mod? Redact the user portion of the path. Add SHA256 if available.
+    validations:
+      required: true
+  - type: textarea
+    id: action
+    attributes:
+      label: Trigger and result / Что вызвало срабатывание
+      description: Describe startup, download, import, Apply, app update or a developer diagnostic run, and what the antivirus did.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Optional verification context / Дополнительные сведения
+      description: Windows version, whether exclusions or trust rules were already active, and a redacted alert screenshot. Do not change protection settings to complete this form.
